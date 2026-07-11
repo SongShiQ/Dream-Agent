@@ -1,0 +1,10 @@
+{
+  "version": "0.3.1",
+  "projectName": "Dream Agent",
+  "mode": "solo",
+  "team": false,
+  "initialized": "2026-07-11T15:20:00.000Z",
+  "platforms": {
+    "opencode": true
+  }
+}

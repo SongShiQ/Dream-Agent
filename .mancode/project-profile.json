@@ -1,0 +1,19 @@
+{
+  "name": "OpenCamp AI Agent",
+  "type": "web-app",
+  "languages": ["TypeScript"],
+  "framework": "Next.js",
+  "ui": {
+    "library": "shadcn/ui",
+    "styling": "Tailwind CSS",
+    "colors": [],
+    "fonts": []
+  },
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "lintCommands": {
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  }
+}

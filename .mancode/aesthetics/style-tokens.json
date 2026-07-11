@@ -1,0 +1,23 @@
+{
+  "colors": {
+    "primary": "hsl(var(--primary))",
+    "secondary": "hsl(var(--secondary))",
+    "accent": "hsl(var(--accent))",
+    "muted": "hsl(var(--muted))",
+    "destructive": "hsl(var(--destructive))",
+    "background": "hsl(var(--background))",
+    "foreground": "hsl(var(--foreground))",
+    "card": "hsl(var(--card))",
+    "border": "hsl(var(--border))"
+  },
+  "fonts": {
+    "sans": "Inter, system-ui, sans-serif",
+    "mono": "JetBrains Mono, monospace"
+  },
+  "components": {
+    "button": "shadcn/ui Button",
+    "card": "shadcn/ui Card",
+    "input": "shadcn/ui Input",
+    "dialog": "shadcn/ui Dialog"
+  }
+}
