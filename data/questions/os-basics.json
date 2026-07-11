@@ -1,0 +1,136 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": ["process", "scheduling"],
+    "content": "在进程调度中，RR（Round Robin）算法的主要优点是什么？",
+    "options": [
+      "A. 响应时间短",
+      "B. 吞吐量高",
+      "C. 实现简单",
+      "D. 适合批处理系统"
+    ],
+    "answer": "A",
+    "explanation": "RR 算法通过时间片轮转，保证每个进程都能在一定时间内得到 CPU，因此响应时间短。缺点是上下文切换开销大。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["memory", "virtual_memory"],
+    "content": "页表的主要作用是什么？",
+    "options": [
+      "A. 存储进程的所有数据",
+      "B. 将虚拟地址映射到物理地址",
+      "C. 管理磁盘空间",
+      "D. 实现进程间通信"
+    ],
+    "answer": "B",
+    "explanation": "页表是操作系统内存管理的核心数据结构，负责将进程使用的虚拟地址转换为实际的物理地址。"
+  },
+  {
+    "type": "fill",
+    "difficulty": 50,
+    "knowledgePoints": ["process", "state"],
+    "content": "进程的三种基本状态是：______、______、______。",
+    "answer": "就绪、运行、阻塞",
+    "explanation": "进程状态转换图：就绪态等待 CPU，运行态占用 CPU，阻塞态等待 I/O 或事件。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "在 Rust 中，以下哪个概念用于保证内存安全？",
+    "options": [
+      "A. 垃圾回收（GC）",
+      "B. 所有权（Ownership）",
+      "C. 引用计数（Reference Counting）",
+      "D. 手动内存管理"
+    ],
+    "answer": "B",
+    "explanation": "Rust 的所有权系统在编译时检查内存安全，无需运行时开销。每个值都有一个所有者，当所有者离开作用域时，值会被自动释放。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "在 Unix 文件系统中，inode 存储了什么信息？",
+    "options": [
+      "A. 文件名",
+      "B. 文件内容",
+      "C. 文件元数据（权限、大小、时间戳等）",
+      "D. 目录结构"
+    ],
+    "answer": "C",
+    "explanation": "inode（索引节点）存储文件的元数据，包括文件权限、大小、创建时间、修改时间等。文件名存储在目录项中，而不是 inode 中。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["interrupt", "trap"],
+    "content": "xv6 中，trap 的主要作用是什么？",
+    "options": [
+      "A. 处理硬件中断",
+      "B. 实现系统调用",
+      "C. 处理页面错误",
+      "D. 以上都是"
+    ],
+    "answer": "D",
+    "explanation": "在 xv6 中，trap 是处理所有中断和异常的统一入口，包括硬件中断、系统调用和页面错误。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "自旋锁（Spinlock）的特点是什么？",
+    "options": [
+      "A. 等待时会释放 CPU",
+      "B. 等待时会忙等待（busy-wait）",
+      "C. 只能用于单核 CPU",
+      "D. 会引入上下文切换"
+    ],
+    "answer": "B",
+    "explanation": "自旋锁在获取锁失败时会忙等待（不断检查锁状态），不会释放 CPU。适用于临界区很短的场景。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["memory", "page_fault"],
+    "content": "当进程访问一个未映射的虚拟地址时，会发生什么？",
+    "options": [
+      "A. 内核直接终止进程",
+      "B. 触发 page fault，内核尝试处理",
+      "C. CPU 自动跳转到地址 0",
+      "D. 返回段错误给用户程序"
+    ],
+    "answer": "B",
+    "explanation": "访问未映射的虚拟地址会触发 page fault 异常。内核会检查访问是否合法，如果合法（如按需分页），会分配物理页并建立映射；如果不合法，会终止进程。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["rust", "borrow"],
+    "content": "Rust 中的借用规则是什么？",
+    "options": [
+      "A. 可以同时有多个可变引用",
+      "B. 可以同时有多个不可变引用",
+      "C. 不可变引用和可变引用可以同时存在",
+      "D. 引用必须始终有效"
+    ],
+    "answer": "B",
+    "explanation": "Rust 的借用规则：在任意时刻，要么有一个可变引用，要么有多个不可变引用，但不能同时存在。这保证了数据竞争不会发生。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["process", "fork"],
+    "content": "在 Unix 中，fork() 系统调用的特点是什么？",
+    "options": [
+      "A. 创建新进程，共享父进程的地址空间",
+      "B. 创建新进程，复制父进程的地址空间",
+      "C. 创建新线程，共享父进程的地址空间",
+      "D. 创建新进程，不复制父进程的任何资源"
+    ],
+    "answer": "B",
+    "explanation": "fork() 创建一个新进程（子进程），子进程是父进程的副本，拥有独立的地址空间。现代 Unix 使用写时复制（Copy-on-Write）优化，实际的内存复制延迟到修改时才发生。"
+  }
+]
