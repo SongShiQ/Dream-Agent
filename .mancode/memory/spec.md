@@ -34,3 +34,7 @@ tests/        - Test files
 - Components: PascalCase (`ChatPanel.tsx`)
 - Functions: camelCase (`generateQuestion`)
 - Constants: UPPER_SNAKE_CASE (`DEFAULT_CONFIGS`)
+
+## Active Plans
+
+- 20260711-152730-task-1-next-js | in_progress | plan v1 | .mancode/workflows/20260711-152730-task-1-next-js/plan.md | 2026-07-11T07:28:48.188Z
