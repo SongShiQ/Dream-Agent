@@ -1,4 +1,4 @@
-export type LLMProvider = 'openai' | 'anthropic' | 'local' | 'custom';
+export type LLMProvider = 'openai' | 'anthropic' | 'deepseek' | 'local' | 'custom';
 
 export interface LLMConfig {
   provider: LLMProvider;
@@ -19,37 +19,37 @@ export interface AgentLLMConfigs {
 
 export const DEFAULT_CONFIGS: AgentLLMConfigs = {
   router: {
-    provider: 'openai',
+    provider: 'deepseek',
     apiKey: '',
-    model: 'gpt-4o-mini',
+    model: 'deepseek-chat',
     temperature: 0.3,
     maxTokens: 1024,
   },
   assessor: {
-    provider: 'openai',
+    provider: 'deepseek',
     apiKey: '',
-    model: 'gpt-4o',
+    model: 'deepseek-chat',
     temperature: 0.5,
     maxTokens: 2048,
   },
   tutor: {
-    provider: 'anthropic',
+    provider: 'deepseek',
     apiKey: '',
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'deepseek-chat',
     temperature: 0.7,
     maxTokens: 4096,
   },
   examiner: {
-    provider: 'openai',
+    provider: 'deepseek',
     apiKey: '',
-    model: 'gpt-4o',
+    model: 'deepseek-chat',
     temperature: 0.8,
     maxTokens: 2048,
   },
   planner: {
-    provider: 'openai',
+    provider: 'deepseek',
     apiKey: '',
-    model: 'gpt-4o',
+    model: 'deepseek-chat',
     temperature: 0.5,
     maxTokens: 2048,
   },

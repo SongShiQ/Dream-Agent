@@ -16,6 +16,13 @@ export function createLLMProvider(config: LLMConfig) {
         baseURL: config.baseUrl,
       })(config.model);
     
+    case 'deepseek':
+      // DeepSeek 兼容 OpenAI API
+      return createOpenAI({
+        apiKey: config.apiKey,
+        baseURL: config.baseUrl || 'https://api.deepseek.com/v1',
+      })(config.model);
+    
     case 'local':
       // Ollama 兼容 OpenAI API
       return createOpenAI({

@@ -6,9 +6,9 @@ export async function createQuestion(data: QuestionData): Promise<Question> {
     data: {
       type: data.type,
       difficulty: data.difficulty,
-      knowledgePoints: data.knowledgePoints,
+      knowledgePoints: JSON.stringify(data.knowledgePoints),
       content: data.content,
-      options: data.options || [],
+      options: JSON.stringify(data.options || []),
       answer: data.answer,
       explanation: data.explanation,
     },
@@ -20,17 +20,13 @@ export async function getQuestionsByDifficulty(
   knowledgePoints: string[],
   limit: number = 5
 ): Promise<Question[]> {
+  // SQLite 不支持数组查询，简化为按难度查询
   return prisma.question.findMany({
     where: {
       difficulty: {
         gte: Math.max(0, difficulty - 15),
         lte: Math.min(100, difficulty + 15),
       },
-      ...(knowledgePoints.length > 0 ? {
-        knowledgePoints: {
-          hasSome: knowledgePoints,
-        },
-      } : {}),
     },
     take: limit,
     orderBy: { difficulty: 'asc' },

@@ -33,9 +33,9 @@ async function importQuestions() {
       data: {
         type: q.type,
         difficulty: q.difficulty,
-        knowledgePoints: q.knowledgePoints,
+        knowledgePoints: JSON.stringify(q.knowledgePoints),
         content: q.content,
-        options: q.options || [],
+        options: JSON.stringify(q.options || []),
         answer: q.answer,
         explanation: q.explanation,
       },

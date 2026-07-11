@@ -1,6 +1,5 @@
 import prisma from './index';
 import type { LearningPlan, Stage } from './schema';
-import { Prisma } from '@prisma/client';
 
 export async function getOrCreatePlan(
   studentId: string,
@@ -15,8 +14,8 @@ export async function getOrCreatePlan(
       data: {
         studentId,
         currentStage,
-        dailyTasks: [],
-        weeklyGoals: [],
+        dailyTasks: '[]',
+        weeklyGoals: '[]',
       },
     });
   }
@@ -33,16 +32,18 @@ export async function updatePlan(
     currentStage?: string;
   }
 ): Promise<LearningPlan> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = {
-    weeklyGoals: updates.weeklyGoals,
+  const data: Record<string, unknown> = {
     estimatedCompletion: updates.estimatedCompletion,
     currentStage: updates.currentStage,
     lastAdjustedAt: new Date(),
   };
 
   if (updates.dailyTasks) {
-    data.dailyTasks = updates.dailyTasks as unknown as Prisma.InputJsonValue;
+    data.dailyTasks = JSON.stringify(updates.dailyTasks);
+  }
+
+  if (updates.weeklyGoals) {
+    data.weeklyGoals = JSON.stringify(updates.weeklyGoals);
   }
 
   return prisma.learningPlan.update({

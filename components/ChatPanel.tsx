@@ -4,10 +4,10 @@ import { useChat } from 'ai/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 
 export function ChatPanel() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append } = useChat({
     api: '/api/chat',
   });
 
@@ -17,6 +17,22 @@ export function ChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // 监听快捷按钮发送的消息
+  const handleMessageEvent = useCallback((event: Event) => {
+    const customEvent = event as CustomEvent;
+    const content = customEvent.detail?.content;
+    if (content && append) {
+      append({ role: 'user', content });
+    }
+  }, [append]);
+
+  useEffect(() => {
+    window.addEventListener('send-message', handleMessageEvent);
+    return () => {
+      window.removeEventListener('send-message', handleMessageEvent);
+    };
+  }, [handleMessageEvent]);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -25,6 +41,7 @@ export function ChatPanel() {
             <div className="text-center">
               <p className="text-lg mb-2">欢迎使用 OpenCamp AI 助教</p>
               <p className="text-sm">输入你的问题开始学习</p>
+              <p className="text-xs mt-4">试试点击右侧的快捷功能按钮</p>
             </div>
           </div>
         )}

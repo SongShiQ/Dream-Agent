@@ -35,6 +35,8 @@ function getEnvKeyForProvider(provider: string): string | undefined {
       return process.env.OPENAI_API_KEY;
     case 'anthropic':
       return process.env.ANTHROPIC_API_KEY;
+    case 'deepseek':
+      return process.env.DEEPSEEK_API_KEY;
     default:
       return undefined;
   }

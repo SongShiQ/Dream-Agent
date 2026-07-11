@@ -36,7 +36,7 @@ export async function updateStudentStage(id: string, stage: Stage): Promise<Stud
 export async function updateStudentWeakPoints(id: string, weakPoints: string[]): Promise<Student> {
   return prisma.student.update({
     where: { id },
-    data: { weakPoints },
+    data: { weakPoints: JSON.stringify(weakPoints) },
   });
 }
 

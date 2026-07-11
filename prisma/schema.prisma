@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 // 学员档案
@@ -16,7 +16,7 @@ model Student {
   name          String
   email         String?  @unique
   currentStage  String   @default("pre_study_theory")
-  weakPoints    String[] @default([])
+  weakPoints    String   @default("[]") // JSON array as string
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -36,7 +36,7 @@ model Assessment {
   theory      Int      @default(0) // 0-100
   coding      Int      @default(0) // 0-100
   rust        Int      @default(0) // 0-100
-  weakPoints  String[] @default([])
+  weakPoints  String   @default("[]") // JSON array as string
   assessedAt  DateTime @default(now())
 
   @@index([studentId])
@@ -47,9 +47,9 @@ model Question {
   id              String   @id @default(cuid())
   type            String   // choice | fill | code | design
   difficulty      Int      @default(50) // 0-100
-  knowledgePoints String[] @default([])
+  knowledgePoints String   @default("[]") // JSON array as string
   content         String
-  options         String[] @default([]) // 选择题选项
+  options         String   @default("[]") // JSON array as string
   answer          String
   explanation     String
   createdAt       DateTime @default(now())
@@ -84,22 +84,10 @@ model LearningPlan {
   studentId           String    @unique
   student             Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
   currentStage        String
-  dailyTasks          Json      @default("[]")
-  weeklyGoals         String[]  @default([])
+  dailyTasks          String    @default("[]") // JSON as string
+  weeklyGoals         String    @default("[]") // JSON array as string
   estimatedCompletion DateTime?
   lastAdjustedAt      DateTime  @default(now())
 
   @@index([currentStage])
-}
-
-// 知识库条目（用于向量搜索）
-model Knowledge {
-  id        String   @id @default(cuid())
-  content   String
-  source    String
-  topic     String
-  embedding Unsupported("vector(1536)")? // OpenAI embedding维度
-  createdAt DateTime @default(now())
-
-  @@index([topic])
 }

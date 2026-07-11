@@ -40,7 +40,7 @@ ${answers.map((a, i) => `${i + 1}. ${a}`).join('\n')}
       theory: object.theory,
       coding: object.coding,
       rust: object.rust,
-      weakPoints: object.weakPoints,
+      weakPoints: JSON.stringify(object.weakPoints),
     },
   });
 

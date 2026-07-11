@@ -56,9 +56,9 @@ export async function generateQuestion(
     data: {
       type: object.type,
       difficulty: newDifficulty,
-      knowledgePoints: object.knowledgePoints,
+      knowledgePoints: JSON.stringify(object.knowledgePoints),
       content: object.content,
-      options: object.options || [],
+      options: JSON.stringify(object.options || []),
       answer: object.answer,
       explanation: object.explanation,
     },

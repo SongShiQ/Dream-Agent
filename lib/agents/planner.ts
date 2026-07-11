@@ -26,7 +26,8 @@ export async function generateLearningPlan(studentId: string) {
 
   const currentStage = progress.currentStage as Stage;
   const latestAssessment = progress.assessments[0];
-  const weakPoints = latestAssessment?.weakPoints || progress.weakPoints || [];
+  const weakPointsStr = latestAssessment?.weakPoints || progress.weakPoints || '[]';
+  const weakPoints: string[] = JSON.parse(typeof weakPointsStr === 'string' ? weakPointsStr : '[]');
 
   const llm = getLLMProvider('planner');
 

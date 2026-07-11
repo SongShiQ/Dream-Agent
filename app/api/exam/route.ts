@@ -15,10 +15,11 @@ export async function POST(req: Request) {
       }
 
       // 生成新题目
+      const weakPoints = student.weakPoints ? JSON.parse(student.weakPoints) : [];
       const result = await generateQuestion(
         studentId,
         50, // 默认难度
-        student.weakPoints || []
+        weakPoints
       );
       return NextResponse.json(result);
     }
