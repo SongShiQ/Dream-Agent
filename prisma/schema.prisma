@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 学员档案
+model Student {
+  id            String   @id @default(cuid())
+  name          String
+  email         String?  @unique
+  currentStage  String   @default("pre_study_theory")
+  weakPoints    String[] @default([])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 关联
+  assessments   Assessment[]
+  answerRecords AnswerRecord[]
+  learningPlan  LearningPlan?
+
+  @@index([currentStage])
+}
+
+// 水平评估
+model Assessment {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  theory      Int      @default(0) // 0-100
+  coding      Int      @default(0) // 0-100
+  rust        Int      @default(0) // 0-100
+  weakPoints  String[] @default([])
+  assessedAt  DateTime @default(now())
+
+  @@index([studentId])
+}
+
+// 题目
+model Question {
+  id              String   @id @default(cuid())
+  type            String   // choice | fill | code | design
+  difficulty      Int      @default(50) // 0-100
+  knowledgePoints String[] @default([])
+  content         String
+  options         String[] @default([]) // 选择题选项
+  answer          String
+  explanation     String
+  createdAt       DateTime @default(now())
+
+  // 关联
+  answerRecords AnswerRecord[]
+
+  @@index([type])
+  @@index([difficulty])
+}
+
+// 答题记录
+model AnswerRecord {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer      String
+  isCorrect   Boolean
+  timeSpent   Int      @default(0) // 秒
+  answeredAt  DateTime @default(now())
+
+  @@index([studentId])
+  @@index([questionId])
+  @@index([answeredAt])
+}
+
+// 学习计划
+model LearningPlan {
+  id                  String    @id @default(cuid())
+  studentId           String    @unique
+  student             Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  currentStage        String
+  dailyTasks          Json      @default("[]")
+  weeklyGoals         String[]  @default([])
+  estimatedCompletion DateTime?
+  lastAdjustedAt      DateTime  @default(now())
+
+  @@index([currentStage])
+}
+
+// 知识库条目（用于向量搜索）
+model Knowledge {
+  id        String   @id @default(cuid())
+  content   String
+  source    String
+  topic     String
+  embedding Unsupported("vector(1536)")? // OpenAI embedding维度
+  createdAt DateTime @default(now())
+
+  @@index([topic])
+}
