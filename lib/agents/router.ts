@@ -27,7 +27,8 @@ export async function routeUserMessage(message: string): Promise<RouterDecision>
     const llm = getLLMProvider('router');
     
     const result = await generateText({
-      model: llm,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      model: llm as any,
       prompt: `${ROUTER_PROMPT}\n\n用户消息: ${message}`,
       temperature: 0.3,
       maxTokens: 256,
