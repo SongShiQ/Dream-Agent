@@ -116,7 +116,7 @@
       "D. 中断处理程序"
     ],
     "answer": "B",
-    "explanation": "需保留退出码直到父回收。",
+    "explanation": "正确答案是 B。僵尸进程（zombie）= 已终止执行，但父进程尚未 wait/waitpid 读取其退出状态，PCB 中仍保留退出码等信息。A 是运行态；C 内核线程不是 zombie 定义；D 中断处理不是进程状态。",
     "stage": "professional"
   },
   {

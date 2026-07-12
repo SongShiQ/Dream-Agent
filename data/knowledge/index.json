@@ -24,11 +24,23 @@
     "interrupt": ["os-theory/01-overview.md", "cards/trap-syscall.md"],
     "trap": ["cards/trap-syscall.md"],
     "syscall": ["cards/trap-syscall.md"],
-    "rust": ["rust/01-basics.md", "rust/02-ownership.md"],
+    "rust": [
+      "rust/01-basics.md",
+      "rust/02-ownership.md",
+      "cards/ownership.md",
+      "rust/03-structs-enums.md",
+      "rust/04-error-handling.md"
+    ],
     "ownership": ["rust/02-ownership.md", "cards/ownership.md"],
     "borrow": ["rust/02-ownership.md", "cards/ownership.md"],
-    "lifetime": ["rust/02-ownership.md"],
-    "overview": ["os-theory/01-overview.md"]
+    "lifetime": ["rust/02-ownership.md", "rust/05-generics-traits.md"],
+    "overview": ["os-theory/01-overview.md"],
+    "structs": ["rust/03-structs-enums.md"],
+    "error_handling": ["rust/04-error-handling.md"],
+    "generics": ["rust/05-generics-traits.md"],
+    "smart_pointers": ["rust/06-smart-pointers.md"],
+    "async": ["rust/08-async.md"],
+    "modules": ["rust/09-modules.md"]
   },
   "stageLabs": {
     "pre_study_theory": {
@@ -39,21 +51,33 @@
     },
     "pre_study_rust": {
       "label": "导学-Rust",
-      "focus": "所有权、借用、Result/Option",
+      "focus": "所有权、借用、Result/Option、结构体与错误处理",
       "labs": [],
-      "reads": ["rust/01-basics.md", "rust/02-ownership.md"]
+      "reads": [
+        "rust/01-basics.md",
+        "rust/02-ownership.md",
+        "rust/03-structs-enums.md",
+        "rust/04-error-handling.md",
+        "cards/ownership.md"
+      ]
     },
     "pre_study_tools": {
       "label": "导学-工具",
-      "focus": "环境、Git、调试、阅读代码",
+      "focus": "环境、Git、调试、阅读代码、模块",
       "labs": ["env-setup"],
-      "reads": ["rust/09-modules.md"]
+      "reads": ["rust/09-modules.md", "rust/10-systems.md"]
     },
     "basic": {
       "label": "基础阶段",
-      "focus": "Rust 进阶 + 最小内核概念",
+      "focus": "Rust 进阶 + trap/syscall + 最小内核概念",
       "labs": ["lab1-batch"],
-      "reads": ["os-theory/03-memory.md", "cards/trap-syscall.md"]
+      "reads": [
+        "os-theory/03-memory.md",
+        "cards/trap-syscall.md",
+        "rust/05-generics-traits.md",
+        "rust/06-smart-pointers.md",
+        "cards/virtual-memory.md"
+      ]
     },
     "professional": {
       "label": "专业阶段",

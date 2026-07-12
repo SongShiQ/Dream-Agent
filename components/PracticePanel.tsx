@@ -21,6 +21,86 @@ const KP_OPTIONS = [
   'page_fault',
 ];
 
+/** 导学 + 基础大章：章节化入口，便于循序练习 */
+const FOUNDATION_CHAPTERS: {
+  id: string;
+  title: string;
+  detail: string;
+  kp: string;
+  stageHint: string;
+}[] = [
+  {
+    id: 'ch-theory-overview',
+    title: 'OS 总览与中断',
+    detail: '操作系统角色 · 中断/异常 · 特权级',
+    kp: 'interrupt',
+    stageHint: '导学-理论',
+  },
+  {
+    id: 'ch-process',
+    title: '进程与调度',
+    detail: 'PCB · 三态 · fork · 调度算法',
+    kp: 'process',
+    stageHint: '导学-理论',
+  },
+  {
+    id: 'ch-memory',
+    title: '内存与虚存',
+    detail: '页表 · 缺页 · TLB · 地址翻译',
+    kp: 'virtual_memory',
+    stageHint: '导学-理论 / 基础',
+  },
+  {
+    id: 'ch-fs',
+    title: '文件与 inode',
+    detail: '目录 · 打开文件 · 元数据',
+    kp: 'filesystem',
+    stageHint: '导学-理论',
+  },
+  {
+    id: 'ch-rust-syntax',
+    title: 'Rust 语法基础',
+    detail: '变量 · 类型 · 控制流 · 函数',
+    kp: 'rust',
+    stageHint: '导学-Rust',
+  },
+  {
+    id: 'ch-ownership',
+    title: '所有权与借用',
+    detail: 'move · &T / &mut T · 生命周期入门',
+    kp: 'ownership',
+    stageHint: '导学-Rust',
+  },
+  {
+    id: 'ch-error',
+    title: 'Option / Result',
+    detail: '错误处理 · ? · 模式匹配',
+    kp: 'rust',
+    stageHint: '导学-Rust',
+  },
+  {
+    id: 'ch-trap',
+    title: 'Trap 与系统调用',
+    detail: 'ecall · scause · 批处理最小内核',
+    kp: 'trap',
+    stageHint: '基础 / lab1',
+  },
+  {
+    id: 'ch-syscall',
+    title: '系统调用接口',
+    detail: '用户态陷入 · ABI · write/exit',
+    kp: 'syscall',
+    stageHint: '基础 / lab1',
+  },
+  {
+    id: 'ch-concurrency',
+    title: '并发入门',
+    detail: '锁 · 临界区 · 死锁条件',
+    kp: 'concurrency',
+    stageHint: '导学延伸',
+  },
+];
+
 interface PracticePanelProps {
   studentId: string;
   /** 单知识点 3 题快练（卡住一键过关） */
@@ -104,7 +184,29 @@ export function PracticePanel({ studentId, onQuickDrill, onQuickWeak }: Practice
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">知识点列表</CardTitle>
+          <CardTitle className="text-sm">导学 / 基础 · 章节练习</CardTitle>
+        </CardHeader>
+        <CardContent className="grid sm:grid-cols-2 gap-2">
+          {FOUNDATION_CHAPTERS.map((ch) => (
+            <button
+              key={ch.id}
+              type="button"
+              onClick={() => (onQuickDrill ? onQuickDrill(ch.kp) : setKp(ch.kp))}
+              className="text-left p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+            >
+              <p className="text-sm font-medium">{ch.title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{ch.detail}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {ch.stageHint} · 标签 {ch.kp}
+              </p>
+            </button>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">知识点标签</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           {KP_OPTIONS.map((k) => (

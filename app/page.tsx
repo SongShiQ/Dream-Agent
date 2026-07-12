@@ -299,10 +299,12 @@ export default function Home() {
         </header>
 
         <div className="flex-1 flex min-h-0">
-          <div className="flex-1 min-w-0 min-h-0">
-            {showMap ? (
+          <div className="flex-1 min-w-0 min-h-0 relative">
+            {/* 保持各模块挂载，切换时仅隐藏，避免练习/聊天状态丢失 */}
+            <div className={showMap && !showWrongBook ? 'h-full' : 'hidden'}>
               <LearningMapPanel onNavigate={navigateFromMap} />
-            ) : showWrongBook ? (
+            </div>
+            <div className={!showMap && showWrongBook ? 'h-full' : 'hidden'}>
               <WrongBookPanel
                 studentId={user?.studentId || ''}
                 onRetry={(_qid, kp) => {
@@ -312,9 +314,26 @@ export default function Home() {
                   });
                 }}
               />
-            ) : currentMode === 'quiz' ? (
-              <ExamPanel studentId={user?.studentId || ''} />
-            ) : currentMode === 'assess' ? (
+            </div>
+            <div
+              className={
+                !showMap && !showWrongBook && currentMode === 'quiz' ? 'h-full' : 'hidden'
+              }
+            >
+              <ExamPanel
+                studentId={user?.studentId || ''}
+                title="练习模式"
+                onExit={() => {
+                  setShowWrongBook(false);
+                  setShowMap(true);
+                }}
+              />
+            </div>
+            <div
+              className={
+                !showMap && !showWrongBook && currentMode === 'assess' ? 'h-full' : 'hidden'
+              }
+            >
               <AssessPanel
                 studentId={user?.studentId || ''}
                 onContinue={(target) => {
@@ -334,10 +353,20 @@ export default function Home() {
                   setMode(target === 'quiz' ? 'quiz' : target === 'plan' ? 'plan' : 'lab');
                 }}
               />
-            ) : currentMode === 'plan' ? (
+            </div>
+            <div
+              className={
+                !showMap && !showWrongBook && currentMode === 'plan' ? 'h-full' : 'hidden'
+              }
+            >
               <PlanPanel studentId={user?.studentId || ''} />
-            ) : currentMode === 'practice' ? (
-              drillKp || drillFocusWeak ? (
+            </div>
+            <div
+              className={
+                !showMap && !showWrongBook && currentMode === 'practice' ? 'h-full' : 'hidden'
+              }
+            >
+              {drillKp || drillFocusWeak ? (
                 <div className="h-full flex flex-col">
                   <div className="p-2 border-b flex items-center justify-between gap-2">
                     <button
@@ -362,6 +391,10 @@ export default function Home() {
                         setShowWrongBook(false);
                         setShowMap(true);
                       }}
+                      onExit={() => {
+                        clearDrill();
+                        setShowMap(true);
+                      }}
                     />
                   </div>
                 </div>
@@ -371,17 +404,29 @@ export default function Home() {
                   onQuickDrill={(kp) => startQuickDrill({ knowledgePoint: kp })}
                   onQuickWeak={() => startQuickDrill({ focusWeak: true })}
                 />
-              )
-            ) : currentMode === 'lab' ? (
+              )}
+            </div>
+            <div
+              className={
+                !showMap && !showWrongBook && currentMode === 'lab' ? 'h-full' : 'hidden'
+              }
+            >
               <LabPanel studentId={user?.studentId || ''} />
-            ) : currentMode === 'report' ? (
+            </div>
+            <div
+              className={
+                !showMap && !showWrongBook && currentMode === 'report' ? 'h-full' : 'hidden'
+              }
+            >
               <ReportPanel studentId={user?.studentId || ''} />
-            ) : (
-              <ChatPanel
-                mode={currentMode}
-                placeholder={LEARNING_MODES[currentMode].placeholder}
-              />
-            )}
+            </div>
+            <div
+              className={
+                !showMap && !showWrongBook && currentMode === 'chat' ? 'h-full' : 'hidden'
+              }
+            >
+              <ChatPanel mode="chat" placeholder={LEARNING_MODES.chat.placeholder} />
+            </div>
           </div>
 
           <aside className="w-80 border-l p-4 hidden lg:block overflow-y-auto">
