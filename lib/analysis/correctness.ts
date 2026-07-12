@@ -46,9 +46,9 @@ function checkRustSyntax(code: string, issues: Issue[], suggestions: string[]) {
 
   // 检查 unwrap 使用
   const unwrapCount = (code.match(/\.unwrap\(\)/g) || []).length;
-  if (unwrapCount > 3) {
+  if (unwrapCount > 0) {
     issues.push({
-      severity: 'warning',
+      severity: unwrapCount > 3 ? 'warning' : 'info',
       message: `使用了 ${unwrapCount} 次 unwrap()，可能导致 panic`,
     });
     suggestions.push('考虑使用 ? 操作符或 expect() 替代 unwrap()');

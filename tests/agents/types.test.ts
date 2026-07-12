@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AGENT_SYSTEM_PROMPTS, AGENT_DESCRIPTIONS } from '@/lib/agents/types';
+import { AGENT_SYSTEM_PROMPTS, AGENT_DESCRIPTIONS } from '@/lib/agents/config';
 import type { AgentName } from '@/lib/agents/types';
 
 describe('Agent Types', () => {
