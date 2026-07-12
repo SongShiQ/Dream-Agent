@@ -1,104 +1,152 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import * as fs from 'fs';
-import * as path from 'path';
+import {
+  STAGE_LABELS,
+  isFakeStudentId,
+  loadConfig,
+  parseWeakPoints,
+  progressPath,
+  writeProgressSnapshot,
+} from '../lib/config';
 
 export const statusCommand = new Command('status')
-  .description('查看学习状态')
-  .option('-s, --student <id>', '学员 ID')
+  .description('查看学习状态（优先服务器，与网页同一 student id）')
+  .option('-s, --student <id>', '覆盖配置中的学员 ID')
+  .option('-u, --url <url>', '覆盖服务器地址')
   .action(async (options) => {
     try {
       const cwd = process.cwd();
-      
-      // 读取本地进度
-      const progressPath = path.join(cwd, '.dream-agent', 'progress.json');
-      let localProgress = null;
-      if (fs.existsSync(progressPath)) {
-        localProgress = JSON.parse(fs.readFileSync(progressPath, 'utf-8'));
+      const config = loadConfig(cwd);
+
+      const studentId = options.student || config?.id;
+      const serverUrl = (options.url || config?.serverUrl || 'http://localhost:3000').replace(
+        /\/$/,
+        ''
+      );
+
+      if (!studentId || isFakeStudentId(studentId)) {
+        console.log(chalk.red('未绑定合法 student id。'));
+        console.log(chalk.yellow('请先：网页登录 → 设置复制 ID → dream-agent init --id <id> --name <姓名>'));
+        process.exit(1);
       }
 
-      // 读取配置
-      const configPath = path.join(cwd, '.dream-agent', 'config.yaml');
-      let config = null;
-      if (fs.existsSync(configPath)) {
-        // 简单解析 YAML
-        const content = fs.readFileSync(configPath, 'utf-8');
-        const nameMatch = content.match(/name:\s*"([^"]+)"/);
-        const idMatch = content.match(/id:\s*"([^"]+)"/);
-        config = {
-          name: nameMatch ? nameMatch[1] : '未命名学员',
-          id: idMatch ? idMatch[1] : 'unknown',
+      let serverStudent: {
+        id: string;
+        name: string;
+        currentStage: string;
+        weakPoints: string[];
+        stats?: {
+          totalQuestions?: number;
+          correctAnswers?: number;
+          recentAccuracy?: number;
+          currentDifficulty?: number;
         };
-      }
+        _count?: { answerRecords?: number; codeSubmissions?: number };
+      } | null = null;
 
-      // 尝试从服务器获取最新状态
-      let serverProgress = null;
       try {
-        const studentId = options.student || config?.id || 'default_student';
-        const response = await fetch(`http://localhost:3000/api/student?id=${studentId}`);
+        const response = await fetch(`${serverUrl}/api/student?id=${encodeURIComponent(studentId)}`);
         if (response.ok) {
           const data = await response.json();
-          serverProgress = data.student;
+          if (data.student) {
+            serverStudent = {
+              id: data.student.id,
+              name: data.student.name,
+              currentStage: data.student.currentStage,
+              weakPoints: parseWeakPoints(data.student.weakPoints),
+              stats: data.student.stats,
+              _count: data.student._count,
+            };
+            writeProgressSnapshot(
+              {
+                studentId: serverStudent.id,
+                currentStage: serverStudent.currentStage,
+                weakPoints: serverStudent.weakPoints,
+                totalQuestions: serverStudent.stats?.totalQuestions ?? 0,
+                correctAnswers: serverStudent.stats?.correctAnswers ?? 0,
+              },
+              cwd
+            );
+          }
+        } else if (response.status === 404) {
+          console.log(chalk.red(`服务器未找到学员 id=${studentId}`));
+          console.log(chalk.yellow('请确认复制的是网页完整 id，且后端已启动。'));
         }
-      } catch (e) {
-        // 服务器不可用，使用本地数据
+      } catch {
+        console.log(chalk.yellow(`无法连接 ${serverUrl}，尝试本地 progress 缓存`));
       }
 
-      // 显示状态
-      console.log(chalk.cyan('=== 学习状态 ==='));
+      let localProgress: {
+        studentId?: string;
+        currentStage?: string;
+        weakPoints?: string[];
+        totalQuestions?: number;
+        correctAnswers?: number;
+      } | null = null;
+      const pp = progressPath(cwd);
+      if (fs.existsSync(pp)) {
+        try {
+          localProgress = JSON.parse(fs.readFileSync(pp, 'utf-8'));
+        } catch {
+          localProgress = null;
+        }
+      }
+
+      const name = serverStudent?.name || config?.name || '未知';
+      const stage =
+        serverStudent?.currentStage || localProgress?.currentStage || config?.currentStage || '—';
+      const stageLabel = STAGE_LABELS[stage] || stage;
+      const total =
+        serverStudent?.stats?.totalQuestions ?? localProgress?.totalQuestions ?? 0;
+      const correct =
+        serverStudent?.stats?.correctAnswers ?? localProgress?.correctAnswers ?? 0;
+      const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+      const recentAcc = serverStudent?.stats?.recentAccuracy;
+      const difficulty = serverStudent?.stats?.currentDifficulty;
+      const weak =
+        serverStudent?.weakPoints ||
+        localProgress?.weakPoints ||
+        [];
+
+      console.log(chalk.cyan('=== 学习状态（与网页对齐）==='));
       console.log('');
-      
-      if (config) {
-        console.log(chalk.white(`学员: ${config.name}`));
-        console.log(chalk.white(`ID: ${config.id}`));
-      }
-
+      console.log(chalk.white(`学员: ${name}`));
+      console.log(chalk.white(`ID:   ${studentId}`));
+      console.log(chalk.white(`服务: ${serverUrl}`));
+      console.log(
+        chalk.white(
+          `数据源: ${serverStudent ? '服务器' : localProgress ? '本地缓存' : '仅配置'}`
+        )
+      );
       console.log('');
       console.log(chalk.cyan('当前进度:'));
-      
-      const progress = serverProgress || localProgress;
-      if (progress) {
-        const stage = progress.currentStage || 'A1';
-        const stageLabels: Record<string, string> = {
-          'A1': '导学-零基础',
-          'A2': '导学-有编程经验',
-          'A3': '导学-有其他语言基础',
-          'B1': '基础-Rust 入门',
-          'B2': '基础-Rust 进阶',
-          'B3': '基础-工具使用',
-          'C1': '专业-批处理',
-          'C2': '专业-地址空间',
-          'C3': '专业-进程',
-          'C4': '专业-文件系统',
-          'C5': '专业-并发',
-          'D1': '项目-组件化 OS',
-          'D2': '项目-项目实践',
-        };
-        
-        console.log(`  阶段: ${stageLabels[stage] || stage}`);
-        
-        if (progress.totalQuestions) {
-          const accuracy = progress.correctAnswers 
-            ? Math.round(progress.correctAnswers / progress.totalQuestions * 100) 
-            : 0;
-          console.log(`  已答题: ${progress.totalQuestions}`);
-          console.log(`  正确率: ${accuracy}%`);
-        }
-        
-        if (progress.weakPoints && progress.weakPoints.length > 0) {
-          console.log(`  薄弱点: ${progress.weakPoints.join(', ')}`);
-        }
+      console.log(`  阶段: ${stageLabel} (${stage})`);
+      console.log(`  已答题: ${total}`);
+      console.log(`  正确率: ${accuracy}%`);
+      if (recentAcc !== undefined) {
+        console.log(`  近 20 题正确率: ${Math.round(recentAcc * 100)}%`);
+      }
+      if (difficulty !== undefined) {
+        console.log(`  当前难度: ${difficulty}`);
+      }
+      if (serverStudent?._count?.codeSubmissions !== undefined) {
+        console.log(`  代码提交次数: ${serverStudent._count.codeSubmissions}`);
+      }
+      if (weak.length > 0) {
+        console.log(`  薄弱点: ${weak.join(', ')}`);
       } else {
-        console.log(chalk.yellow('  暂无进度数据'));
-        console.log(chalk.cyan('  请先运行 dream-agent init 初始化'));
+        console.log('  薄弱点: （无）');
       }
 
       console.log('');
       console.log(chalk.cyan('下一步:'));
-      console.log('  $ dream-agent submit --lab lab1');
-      console.log('  $ dream-agent hint --topic "进程管理"');
+      console.log('  $ dream-agent submit --lab lab1-batch -f <代码文件>');
+      console.log('  $ dream-agent hint --topic "进程"');
+      console.log('  网页继续练习/错题本，进度会反映到本命令');
     } catch (error) {
       console.error(chalk.red('获取状态失败'));
       console.error(error);
+      process.exit(1);
     }
   });

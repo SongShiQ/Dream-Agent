@@ -3,26 +3,33 @@ import chalk from 'chalk';
 import ora from 'ora';
 import * as fs from 'fs';
 import * as path from 'path';
+import { isFakeStudentId, loadConfig } from '../lib/config';
 
 export const submitCommand = new Command('submit')
-  .description('提交代码')
-  .option('-l, --lab <lab>', '实验室名称', 'lab1')
+  .description('提交 lab 代码到网页同一后端（静态分析反馈）')
+  .option('-l, --lab <lab>', '实验室名称', 'lab1-batch')
   .option('-f, --file <file>', '代码文件路径')
-  .option('-s, --student <id>', '学员 ID')
+  .option('-s, --student <id>', '覆盖配置中的学员 ID')
+  .option('-u, --url <url>', '覆盖服务器地址')
   .action(async (options) => {
     const spinner = ora('正在提交代码...').start();
 
     try {
       const cwd = process.cwd();
-      
-      // 读取配置
-      const configPath = path.join(cwd, '.dream-agent', 'config.yaml');
-      if (!fs.existsSync(configPath)) {
-        spinner.fail(chalk.red('未找到配置文件，请先运行 dream-agent init'));
+      const config = loadConfig(cwd);
+
+      const studentId = options.student || config?.id;
+      const serverUrl = (options.url || config?.serverUrl || 'http://localhost:3000').replace(
+        /\/$/,
+        ''
+      );
+
+      if (!studentId || isFakeStudentId(studentId)) {
+        spinner.fail(chalk.red('未绑定合法 student id'));
+        console.log(chalk.yellow('请先: dream-agent init --id <网页id> --name <姓名>'));
         process.exit(1);
       }
 
-      // 读取代码文件
       let code = '';
       if (options.file) {
         const filePath = path.resolve(options.file);
@@ -32,7 +39,6 @@ export const submitCommand = new Command('submit')
         }
         code = fs.readFileSync(filePath, 'utf-8');
       } else {
-        // 默认读取 main.rs 或 lib.rs
         const defaultFiles = ['src/main.rs', 'src/lib.rs', 'main.rs'];
         for (const file of defaultFiles) {
           const filePath = path.join(cwd, file);
@@ -44,15 +50,11 @@ export const submitCommand = new Command('submit')
       }
 
       if (!code) {
-        spinner.fail(chalk.red('未找到代码文件'));
+        spinner.fail(chalk.red('未找到代码文件，请用 -f 指定'));
         process.exit(1);
       }
 
-      // 读取学员 ID
-      const studentId = options.student || 'default_student';
-
-      // 调用 API 提交
-      const response = await fetch('http://localhost:3000/api/submit', {
+      const response = await fetch(`${serverUrl}/api/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,20 +71,26 @@ export const submitCommand = new Command('submit')
         spinner.succeed(chalk.green('代码提交成功！'));
         console.log('');
         console.log(chalk.cyan('提交信息:'));
+        console.log(`  学员: ${studentId}`);
         console.log(`  实验室: ${options.lab}`);
         console.log(`  代码长度: ${code.length} 字符`);
         console.log(`  提交时间: ${new Date().toLocaleString()}`);
-        
+
         if (result.feedback) {
           console.log('');
-          console.log(chalk.yellow('AI 反馈:'));
-          console.log(result.feedback);
+          console.log(chalk.yellow('反馈:'));
+          console.log(
+            typeof result.feedback === 'string'
+              ? result.feedback
+              : JSON.stringify(result.feedback, null, 2)
+          );
         }
       } else {
-        spinner.fail(chalk.red(`提交失败: ${result.error}`));
+        spinner.fail(chalk.red(`提交失败: ${result.error || response.status}`));
+        process.exit(1);
       }
     } catch (error) {
-      spinner.fail(chalk.red('提交失败'));
+      spinner.fail(chalk.red('提交失败（请确认后端已启动）'));
       console.error(error);
       process.exit(1);
     }

@@ -1,30 +1,41 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
+import { isFakeStudentId, loadConfig } from '../lib/config';
 
 export const hintCommand = new Command('hint')
-  .description('获取学习提示')
+  .description('获取学习提示（调用与网页相同的 /api/chat）')
   .option('-t, --topic <topic>', '知识点主题')
   .option('-q, --question <question>', '具体问题')
-  .option('-s, --student <id>', '学员 ID')
+  .option('-s, --student <id>', '覆盖配置中的学员 ID')
+  .option('-u, --url <url>', '覆盖服务器地址')
   .action(async (options) => {
     const spinner = ora('正在获取提示...').start();
 
     try {
-      const studentId = options.student || 'default_student';
-      
-      // 构建提示请求
+      const config = loadConfig();
+      const studentId = options.student || config?.id;
+      const serverUrl = (options.url || config?.serverUrl || 'http://localhost:3000').replace(
+        /\/$/,
+        ''
+      );
+
+      if (!studentId || isFakeStudentId(studentId)) {
+        spinner.fail(chalk.red('未绑定合法 student id'));
+        console.log(chalk.yellow('请先: dream-agent init --id <网页id> --name <姓名>'));
+        process.exit(1);
+      }
+
       let prompt = '';
       if (options.topic) {
-        prompt = `请给我关于"${options.topic}"的学习提示和指导。`;
+        prompt = `请给我关于「${options.topic}」的简短学习提示（结合 OpenCamp / rCore，先引导再给要点）。`;
       } else if (options.question) {
         prompt = options.question;
       } else {
-        prompt = '请给我一些学习操作系统的建议和提示。';
+        prompt = '请根据操作系统训练营，给我 3 条可执行的今日学习建议。';
       }
 
-      // 调用聊天 API
-      const response = await fetch('http://localhost:3000/api/chat', {
+      const response = await fetch(`${serverUrl}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -33,46 +44,70 @@ export const hintCommand = new Command('hint')
         }),
       });
 
-      if (response.ok) {
-        const reader = response.body?.getReader();
-        if (!reader) {
-          spinner.fail(chalk.red('无法读取响应'));
-          return;
-        }
+      if (!response.ok) {
+        spinner.fail(chalk.red(`获取提示失败: HTTP ${response.status}`));
+        const text = await response.text().catch(() => '');
+        if (text) console.error(text.slice(0, 400));
+        process.exit(1);
+      }
 
-        spinner.succeed(chalk.green('提示:'));
-        console.log('');
+      spinner.succeed(chalk.green('提示:'));
+      console.log('');
 
-        // 流式输出
-        const decoder = new TextDecoder();
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          
-          const text = decoder.decode(value);
-          // 解析 SSE 格式
-          const lines = text.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') break;
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.choices?.[0]?.delta?.content) {
-                  process.stdout.write(parsed.choices[0].delta.content);
-                }
-              } catch {
-                // 忽略解析错误
-              }
+      const reader = response.body?.getReader();
+      if (!reader) {
+        const text = await response.text();
+        console.log(text);
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // 兼容 SSE data: 行与纯文本流
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          if (trimmed === 'data: [DONE]' || trimmed === '[DONE]') continue;
+          if (trimmed.startsWith('data: ')) {
+            const data = trimmed.slice(6);
+            try {
+              const parsed = JSON.parse(data);
+              const piece =
+                parsed.choices?.[0]?.delta?.content ||
+                parsed.choices?.[0]?.message?.content ||
+                parsed.content ||
+                parsed.delta ||
+                '';
+              if (piece) process.stdout.write(piece);
+            } catch {
+              process.stdout.write(data);
+            }
+          } else {
+            // 非 SSE：直接输出（部分 AI SDK 流）
+            try {
+              const parsed = JSON.parse(trimmed);
+              const piece = parsed.type === 'text-delta' ? parsed.textDelta : '';
+              if (piece) process.stdout.write(piece);
+            } catch {
+              process.stdout.write(trimmed);
             }
           }
         }
-        console.log('');
-      } else {
-        spinner.fail(chalk.red('获取提示失败'));
       }
+      if (buffer.trim()) {
+        process.stdout.write(buffer);
+      }
+      console.log('');
     } catch (error) {
       spinner.fail(chalk.red('获取提示失败'));
       console.error(error);
+      process.exit(1);
     }
   });
