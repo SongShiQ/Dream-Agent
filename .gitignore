@@ -37,3 +37,18 @@ next-env.d.ts
 # mancode
 .mancode/workflows/
 .mancode/logs/
+.ace-tool/
+
+# local database & runtime logs
+/prisma/*.db
+/prisma/*.db-journal
+server.log
+server.err.log
+server.log.bak
+*.log
+
+# CLI local agent state
+**/.dream-agent/
+
+# patch scratch scripts (one-off)
+/scripts/_patch_*.mjs
