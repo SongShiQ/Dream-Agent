@@ -13,7 +13,9 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "content:import": "tsx scripts/import-questions.ts",
+    "content:audit": "tsx scripts/audit-questions.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.30",
@@ -29,6 +31,7 @@
     "next": "^14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-markdown": "^10.1.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.0"

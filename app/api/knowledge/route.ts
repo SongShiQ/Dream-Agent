@@ -118,6 +118,7 @@ function publicCard(c: {
   labs: string[];
   source: string;
   excerpt: string;
+  content?: string;
   relevance: number;
 }) {
   return {
@@ -128,6 +129,8 @@ function publicCard(c: {
     labs: c.labs,
     source: c.source,
     excerpt: c.excerpt,
+    // 全文供前端 Markdown 展开；excerpt 仅作预览
+    content: c.content || c.excerpt,
     relevance: c.relevance,
   };
 }
