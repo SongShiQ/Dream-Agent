@@ -95,7 +95,8 @@ export async function GET(req: Request) {
     }
 
     if (action === 'sessions') {
-      const sessions = await listSessions(studentId, mode);
+      // 列表默认最多 10 条（与 enforceSessionLimit 一致）
+      const sessions = await listSessions(studentId, mode, 10);
       return Response.json({
         sessions: sessions.map((s) => ({
           id: s.id,
@@ -105,6 +106,7 @@ export async function GET(req: Request) {
           messageCount: s._count.messages,
           updatedAt: s.updatedAt,
         })),
+        maxSessions: 10,
       });
     }
 

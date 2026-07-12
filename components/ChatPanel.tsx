@@ -7,11 +7,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useApp } from '@/lib/context/app-context';
 import { readClientLLMConfig } from '@/lib/llm/client-config';
+import { MarkdownBody } from '@/components/MarkdownBody';
 
 interface ChatPanelProps {
   mode?: string;
   placeholder?: string;
 }
+
+type SessionItem = {
+  id: string;
+  title: string;
+  summary?: string | null;
+  messageCount: number;
+  updatedAt: string;
+};
 
 export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...' }: ChatPanelProps) {
   const { setMessageHandler, addRecord, user } = useApp();
@@ -23,8 +32,31 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
   const [loadKey, setLoadKey] = useState(0); // remount useChat when session changes
   const newSessionRef = useRef(false);
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [showSessionList, setShowSessionList] = useState(false);
 
   const studentId = user?.studentId;
+
+  const refreshSessionList = useCallback(async () => {
+    if (!studentId) {
+      setSessions([]);
+      return;
+    }
+    try {
+      const q = new URLSearchParams({
+        studentId,
+        mode,
+        action: 'sessions',
+      });
+      const res = await fetch(`/api/chat?${q.toString()}`);
+      const data = await res.json();
+      if (res.ok) {
+        setSessions(data.sessions || []);
+      }
+    } catch {
+      /* ignore list errors */
+    }
+  }, [studentId, mode]);
 
   const loadHistory = useCallback(
     async (opts?: { forceNew?: boolean; preferSessionId?: string | null }) => {
@@ -87,7 +119,8 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
 
   useEffect(() => {
     loadHistory();
-  }, [loadHistory]);
+    void refreshSessionList();
+  }, [loadHistory, refreshSessionList]);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload, stop, setMessages } =
     useChat({
@@ -124,6 +157,7 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
           content: message.content.slice(0, 200),
           knowledgePoints: [],
         });
+        void refreshSessionList();
       },
       onError: (err) => {
         setChatError(err.message || '聊天请求失败');
@@ -177,6 +211,30 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
     setChatError(null);
     setMessages([]);
     loadHistory({ forceNew: true });
+    void refreshSessionList();
+  };
+
+  const openSession = (id: string) => {
+    setChatError(null);
+    setShowSessionList(false);
+    newSessionRef.current = false;
+    void loadHistory({ preferSessionId: id });
+  };
+
+  const removeSession = async (id: string) => {
+    if (!studentId) return;
+    if (!window.confirm('删除该历史会话？不可恢复。')) return;
+    try {
+      const q = new URLSearchParams({ studentId, sessionId: id });
+      const res = await fetch(`/api/chat?${q.toString()}`, { method: 'DELETE' });
+      if (!res.ok) return;
+      if (sessionId === id) {
+        handleNewSession();
+      }
+      await refreshSessionList();
+    } catch {
+      /* ignore */
+    }
   };
 
   const getWelcomeMessage = () => {
@@ -205,21 +263,69 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="px-4 py-2 border-b flex items-center justify-between gap-2 text-sm">
-        <div className="truncate text-muted-foreground">
+        <div className="truncate text-muted-foreground min-w-0">
           <span className="text-foreground font-medium">{sessionTitle}</span>
           {sessionId && (
             <span className="ml-2 text-xs opacity-60">#{sessionId.slice(0, 6)}</span>
           )}
+          <span className="ml-2 text-[11px] opacity-60">最多保留 10 条历史</span>
         </div>
         <div className="flex gap-2 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setShowSessionList((v) => !v);
+              void refreshSessionList();
+            }}
+          >
+            历史 ({sessions.length}/10)
+          </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => loadHistory()}>
-            刷新历史
+            刷新
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={handleNewSession}>
             新会话
           </Button>
         </div>
       </div>
+
+      {showSessionList && (
+        <div className="border-b px-3 py-2 max-h-48 overflow-y-auto bg-muted/30 space-y-1">
+          {sessions.length === 0 ? (
+            <p className="text-xs text-muted-foreground p-2">暂无历史会话</p>
+          ) : (
+            sessions.map((s) => (
+              <div
+                key={s.id}
+                className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 text-xs ${
+                  s.id === sessionId ? 'border-primary bg-primary/5' : 'bg-background'
+                }`}
+              >
+                <button
+                  type="button"
+                  className="flex-1 text-left min-w-0"
+                  onClick={() => openSession(s.id)}
+                >
+                  <p className="font-medium truncate">{s.title || '未命名'}</p>
+                  <p className="text-muted-foreground truncate">
+                    {s.messageCount} 条 · {new Date(s.updatedAt).toLocaleString()}
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-red-600 shrink-0 px-1"
+                  title="删除"
+                  onClick={() => void removeSession(s.id)}
+                >
+                  删
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {historyError && (
         <div className="mx-4 mt-2 p-2 text-xs text-amber-800 bg-amber-50 rounded border border-amber-100">
@@ -242,7 +348,11 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
               <p className="text-sm font-medium mb-1">
                 {message.role === 'user' ? '你' : 'AI 助教'}
               </p>
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              {message.role === 'assistant' ? (
+                <MarkdownBody content={message.content} />
+              ) : (
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              )}
             </CardContent>
           </Card>
         ))}

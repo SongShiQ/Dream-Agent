@@ -26,13 +26,16 @@ export async function getOrCreateSession(opts: {
     if (latest) return latest;
   }
 
-  return prisma.chatSession.create({
+  const created = await prisma.chatSession.create({
     data: {
       studentId,
       mode,
       title: '新会话',
     },
   });
+  // 新建后裁剪，保证同时最多 10 条历史
+  await enforceSessionLimit(studentId, mode, 10);
+  return created;
 }
 
 export async function appendMessage(
@@ -76,6 +79,25 @@ export async function listSessions(studentId: string, mode?: string, limit = 20)
       _count: { select: { messages: true } },
     },
   });
+}
+
+/** 每学员每 mode 最多保留 max 条会话，超出删除最旧 */
+export async function enforceSessionLimit(
+  studentId: string,
+  mode: string,
+  max = 10
+): Promise<number> {
+  const all = await prisma.chatSession.findMany({
+    where: { studentId, mode },
+    orderBy: { updatedAt: 'desc' },
+    select: { id: true },
+  });
+  if (all.length <= max) return 0;
+  const overflow = all.slice(max);
+  await prisma.chatSession.deleteMany({
+    where: { id: { in: overflow.map((s) => s.id) } },
+  });
+  return overflow.length;
 }
 
 /** L2 规则摘要：不依赖 LLM */
