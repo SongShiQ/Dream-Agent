@@ -1,0 +1,404 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": ["overview", "process"],
+    "content": "操作系统作为资源管理器，其最核心的职责是？",
+    "options": [
+      "A. 只负责编译用户程序",
+      "B. 抽象硬件并安全高效地分配 CPU、内存、I/O 等资源",
+      "C. 仅提供图形界面",
+      "D. 替代应用程序完成业务逻辑"
+    ],
+    "answer": "B",
+    "explanation": "OS 向下管理硬件，向上提供抽象接口，在多程序间公平、安全地共享资源。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": ["process", "state"],
+    "content": "当运行中的进程发起阻塞型 I/O 请求后，通常会进入哪种状态？",
+    "options": [
+      "A. 就绪",
+      "B. 运行",
+      "C. 阻塞（等待）",
+      "D. 终止后立刻变就绪"
+    ],
+    "answer": "C",
+    "explanation": "等待 I/O 完成期间不能使用 CPU，应进入阻塞态；I/O 完成后变为就绪。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["process", "thread"],
+    "content": "同一进程内多线程默认共享下列哪项资源？",
+    "options": [
+      "A. 各自独立的页表与堆",
+      "B. 地址空间中的代码段与全局数据（同一进程内）",
+      "C. 彼此的用户栈指针完全隔离且不可见于内核",
+      "D. 每个线程独占整个物理内存"
+    ],
+    "answer": "B",
+    "explanation": "线程共享进程地址空间（代码、数据、打开文件等），但通常有各自的栈与寄存器上下文。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["process", "pcb"],
+    "content": "PCB 中通常不会直接保存的是？",
+    "options": [
+      "A. 进程标识与状态",
+      "B. 寄存器现场与调度信息",
+      "C. 用户程序源码全文",
+      "D. 打开文件与地址空间相关描述"
+    ],
+    "answer": "C",
+    "explanation": "PCB 保存管理与调度所需元数据与上下文，不保存完整源码。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["scheduling"],
+    "content": "时间片轮转（RR）调度主要改善的是？",
+    "options": [
+      "A. 磁盘寻道时间",
+      "B. 交互式任务的平均响应时间",
+      "C. 必然最小化周转时间",
+      "D. 消除所有上下文切换"
+    ],
+    "answer": "B",
+    "explanation": "RR 通过轮转保证公平与响应；时间片过小会增加切换开销。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["scheduling", "process"],
+    "content": "多级反馈队列（MLFQ）相对固定优先级调度的优势在于？",
+    "options": [
+      "A. 完全不需要时钟中断",
+      "B. 可根据行为动态调整优先级，兼顾短交互与长批处理",
+      "C. 禁止进程降级",
+      "D. 只适用于单进程系统"
+    ],
+    "answer": "B",
+    "explanation": "MLFQ 用多队列与反馈规则适应不同作业特征，是通用 OS 常见策略。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": ["memory", "virtual_memory"],
+    "content": "引入虚拟地址的主要动机之一是？",
+    "options": [
+      "A. 让每个进程以为自己独占连续地址空间并隔离保护",
+      "B. 取消页表",
+      "C. 禁止程序使用指针",
+      "D. 强制所有数据放在寄存器"
+    ],
+    "answer": "A",
+    "explanation": "虚存提供隔离、保护与灵活放置，配合页表映射到物理页。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["memory", "virtual_memory"],
+    "content": "页式管理中，页内偏移通常如何处理？",
+    "options": [
+      "A. 必须经页表再翻译一次",
+      "B. 直接拼接到物理页框号后形成物理地址",
+      "C. 总是清零",
+      "D. 只用于磁盘地址"
+    ],
+    "answer": "B",
+    "explanation": "VA = VPN + offset，offset 不翻译，与 PFN 拼接得 PA。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["memory", "page_fault"],
+    "content": "缺页异常（page fault）最常见的处理路径是？",
+    "options": [
+      "A. 直接杀死所有进程",
+      "B. 由内核决定加载/分配页面或报错，必要时换入后恢复执行",
+      "C. 用户态自行改页表",
+      "D. 忽略并继续错误地址访问"
+    ],
+    "answer": "B",
+    "explanation": "缺页进入内核；合法访问则分配/换入并更新页表后返回用户态。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["memory", "virtual_memory"],
+    "content": "TLB 未命中时，硬件或软件通常需要？",
+    "options": [
+      "A. 重新编译程序",
+      "B. 查页表填充 TLB 项（或触发对应异常处理）",
+      "C. 清空全部物理内存",
+      "D. 关闭中断永久不返回"
+    ],
+    "answer": "B",
+    "explanation": "TLB 缓存页表项；未命中则走页表遍历（硬件 walk 或软件 refill）。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "目录项（dentry）与 inode 的关系通常是？",
+    "options": [
+      "A. 目录项存文件名并指向 inode；inode 存元数据与数据块索引",
+      "B. inode 存文件名，目录项存全部数据",
+      "C. 二者完全等价",
+      "D. 只有 FAT 才有 inode"
+    ],
+    "answer": "A",
+    "explanation": "Unix 风格：名字在目录，元数据在 inode，硬链接可多名字指同一 inode。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["filesystem"],
+    "content": "打开文件表（open file description）中的文件偏移主要用于？",
+    "options": [
+      "A. 记录下次读写的位置",
+      "B. 存储 inode 号的哈希",
+      "C. 替代权限检查",
+      "D. 保存进程 PID"
+    ],
+    "answer": "A",
+    "explanation": "每次 read/write 基于当前 offset，并可能自动推进。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["filesystem", "io"],
+    "content": "缓冲 I/O（buffered I/O）相对直接每次写磁盘的好处是？",
+    "options": [
+      "A. 总是降低正确性",
+      "B. 合并小写、提高吞吐，必要时再落盘",
+      "C. 取消文件系统",
+      "D. 禁止 fsync"
+    ],
+    "answer": "B",
+    "explanation": "页缓存/用户缓冲可合并写；持久化语义需 fsync 等显式同步。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": ["interrupt", "trap"],
+    "content": "硬件中断与异常（exception）的共同点是？",
+    "options": [
+      "A. 都会迫使 CPU 转入内核定义的处理路径",
+      "B. 都只能由用户程序主动调用",
+      "C. 都不会改变特权级",
+      "D. 都与时钟无关且不可屏蔽"
+    ],
+    "answer": "A",
+    "explanation": "中断/异常/系统调用常统一经 trap 入口进入内核处理。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["interrupt", "trap", "syscall"],
+    "content": "系统调用从用户态进入内核的典型机制是？",
+    "options": [
+      "A. 普通函数调用即可提升特权",
+      "B. 通过 ecall/syscall 等陷阱指令陷入内核",
+      "C. 直接写机器模式寄存器跳过内核",
+      "D. 仅靠编译器内联优化"
+    ],
+    "answer": "B",
+    "explanation": "RISC-V 上常用 ecall；内核 trap 处理中识别为系统调用并分发。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["trap", "interrupt"],
+    "content": "内核在 trap 入口保存通用寄存器的主要目的是？",
+    "options": [
+      "A. 方便调试打印格式",
+      "B. 保护用户/内核上下文以便处理完后正确恢复执行",
+      "C. 清空用户栈",
+      "D. 强制进程退出"
+    ],
+    "answer": "B",
+    "explanation": "陷入时必须保存现场，处理结束后恢复，否则破坏程序正确性。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "临界区（critical section）指的是？",
+    "options": [
+      "A. 任何打印语句",
+      "B. 访问共享资源且需互斥保护的代码段",
+      "C. 只读常量区",
+      "D. 编译器生成的 .text 全部"
+    ],
+    "answer": "B",
+    "explanation": "并发下对共享可变状态的访问需互斥或其它同步，否则有竞态。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["concurrency", "deadlock"],
+    "content": "死锁的四个必要条件中，破坏「循环等待」的常见做法是？",
+    "options": [
+      "A. 对资源规定全局获取顺序",
+      "B. 禁止进程阻塞",
+      "C. 取消所有锁",
+      "D. 只用单核"
+    ],
+    "answer": "A",
+    "explanation": "统一加锁顺序可避免环状等待；另可超时、银行家算法等。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["process", "ipc"],
+    "content": "管道（pipe）作为一种 IPC，其典型特征是？",
+    "options": [
+      "A. 字节流、通常半双工、由内核缓冲",
+      "B. 必须映射同一物理页",
+      "C. 只能父子进程外使用且无缓冲",
+      "D. 等价于共享内存无同步"
+    ],
+    "answer": "A",
+    "explanation": "管道是内核管理的字节流通道，常用于父子进程通信。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["process", "memory"],
+    "content": "用户态与内核态分离的安全意义主要是？",
+    "options": [
+      "A. 让用户程序可任意改页表",
+      "B. 限制不可信代码直接访问特权资源与其它进程内存",
+      "C. 提高编译速度",
+      "D. 取消系统调用"
+    ],
+    "answer": "B",
+    "explanation": "特权级隔离是现代 OS 安全基石；敏感操作必须经受控接口。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["scheduling", "process"],
+    "content": "I/O 密集型进程在短时间片 RR 下往往表现较好，因为？",
+    "options": [
+      "A. 它们几乎不阻塞",
+      "B. 它们常主动阻塞，轮转可快速响应其它就绪进程",
+      "C. 调度器忽略它们",
+      "D. 它们不需要 CPU"
+    ],
+    "answer": "B",
+    "explanation": "I/O 密集进程频繁阻塞，短时间片有利于交互与混合负载响应。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["memory", "virtual_memory"],
+    "content": "写时复制（COW）的核心思想是？",
+    "options": [
+      "A. 父子立刻复制全部物理页",
+      "B. 共享只读映射，首次写时再复制物理页",
+      "C. 禁止 fork",
+      "D. 只复制代码段从不共享"
+    ],
+    "answer": "B",
+    "explanation": "COW 延迟复制，降低 fork 成本；写保护触发缺页后分配新页。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["interrupt", "scheduling"],
+    "content": "时钟中断对抢占式调度的作用是？",
+    "options": [
+      "A. 无作用",
+      "B. 周期性进入内核，检查时间片并可能切换进程",
+      "C. 仅用于磁盘完成通知",
+      "D. 只在关机时触发"
+    ],
+    "answer": "B",
+    "explanation": "定时器中断是抢占与时间片计量的关键硬件事件。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["process", "state"],
+    "content": "从阻塞态到就绪态的典型触发事件是______完成或所等条件满足。",
+    "answer": "I/O",
+    "explanation": "等待的 I/O/事件完成后，进程变为就绪，等待调度上 CPU。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["memory", "virtual_memory"],
+    "content": "把虚拟页号翻译为物理页框号的核心数据结构叫______。",
+    "answer": "页表",
+    "explanation": "页表（可多级）完成 VPN→PFN 映射并带权限位。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "fill",
+    "difficulty": 35,
+    "knowledgePoints": ["syscall", "trap"],
+    "content": "用户程序请求 OS 服务（如读文件）应通过______接口，而不是直接操作硬件。",
+    "answer": "系统调用",
+    "explanation": "系统调用是用户态访问内核能力的受控入口。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["process", "thread"],
+    "content": "内核线程与用户级线程模型中，M:N 模型指？",
+    "options": [
+      "A. 一个用户线程对应一个内核线程",
+      "B. 多个用户线程映射到多个内核线程（由运行时调度）",
+      "C. 没有线程",
+      "D. 仅中断上下文"
+    ],
+    "answer": "B",
+    "explanation": "M:N 由用户运行时与内核线程协作调度，复杂度高但灵活。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "硬链接与软链接的关键区别是？",
+    "options": [
+      "A. 硬链接共享同一 inode；软链接是独立文件存路径字符串",
+      "B. 软链接共享 inode，硬链接存路径",
+      "C. 二者完全相同",
+      "D. 硬链接只能跨文件系统"
+    ],
+    "answer": "A",
+    "explanation": "硬链接增加链接计数指向同一 inode；符号链接是另一文件内容为路径。",
+    "stage": "pre_study_theory"
+  }
+]

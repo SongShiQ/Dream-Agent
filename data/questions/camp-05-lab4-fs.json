@@ -1,0 +1,275 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "lab4 简易文件系统中，inode 通常不直接包含？",
+    "options": [
+      "A. 文件大小与类型",
+      "B. 数据块索引或指向",
+      "C. 目录中的文件名字符串（通常在目录数据中）",
+      "D. 权限/时间戳类元数据（若实现）"
+    ],
+    "answer": "C",
+    "explanation": "文件名在目录项，inode 存元数据与数据定位信息。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "打开文件 open 成功后，进程侧通常得到？",
+    "options": [
+      "A. inode 号直接当句柄无表",
+      "B. 文件描述符 fd，经打开文件表关联偏移与 inode",
+      "C. 物理块号列表用户可改",
+      "D. 仅文件名"
+    ],
+    "answer": "B",
+    "explanation": "fd 是用户态句柄，内核维护打开文件对象。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["filesystem"],
+    "content": "目录在实现上常被视为？",
+    "options": [
+      "A. 特殊文件，数据为目录项序列",
+      "B. 只能是设备",
+      "C. 不能有 inode",
+      "D. 必须是网络连接"
+    ],
+    "answer": "A",
+    "explanation": "目录=存 dentry 的文件，lookup 扫描或哈希。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "创建硬链接时，文件系统应？",
+    "options": [
+      "A. 复制全部数据块成新 inode",
+      "B. 新增目录项指向同一 inode 并增加 nlink",
+      "C. 删除原文件",
+      "D. 必须跨设备"
+    ],
+    "answer": "B",
+    "explanation": "硬链接共享 inode 与数据。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["filesystem"],
+    "content": "unlink/删除文件时，数据块真正释放通常发生在？",
+    "options": [
+      "A. 立刻无论是否仍有打开与链接",
+      "B. 链接计数为 0 且无打开引用时",
+      "C. 仅重启时",
+      "D. 用户第一次 read"
+    ],
+    "answer": "B",
+    "explanation": "Unix 语义：最后关闭且 nlink=0 才释放。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["filesystem", "io"],
+    "content": "块设备缓存（buffer cache）的主要收益是？",
+    "options": [
+      "A. 取消一致性",
+      "B. 减少真实磁盘 I/O，合并读写",
+      "C. 让 fd 变成进程",
+      "D. 替代 inode"
+    ],
+    "answer": "B",
+    "explanation": "缓存热数据与延迟写是 FS 性能关键。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["filesystem"],
+    "content": "超级块（superblock）通常描述？",
+    "options": [
+      "A. 单个文件内容",
+      "B. 文件系统全局参数：块大小、inode/块位图位置等",
+      "C. 仅用户密码",
+      "D. CPU 型号"
+    ],
+    "answer": "B",
+    "explanation": "挂载时读取超级块了解布局。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "直接块指针不够大文件时，经典 Unix FS 使用？",
+    "options": [
+      "A. 仅扩大目录",
+      "B. 间接块/多级间接索引",
+      "C. 取消大文件",
+      "D. 把文件放进 inode 全部"
+    ],
+    "answer": "B",
+    "explanation": "间接索引扩展可寻址范围。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["filesystem", "syscall"],
+    "content": "read 系统调用从文件读数据时，内核需要？",
+    "options": [
+      "A. 不检查 fd",
+      "B. 根据 fd 找打开文件与 inode，按偏移读块并拷贝到用户缓冲",
+      "C. 总是读整个磁盘",
+      "D. 修改页表根为文件"
+    ],
+    "answer": "B",
+    "explanation": "标准路径：fd→file→inode→数据块→copy_to_user。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["filesystem"],
+    "content": "路径解析 /a/b/c 的过程本质是？",
+    "options": [
+      "A. 一次哈希到物理页",
+      "B. 从根或 cwd 逐级 lookup 目录项",
+      "C. 只查超级块",
+      "D. 用户态完成全部解析内核不管"
+    ],
+    "answer": "B",
+    "explanation": "namei/path walk 逐组件查找。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "VFS（虚拟文件系统）层的价值是？",
+    "options": [
+      "A. 只支持一种具体 FS",
+      "B. 用统一 inode/file 操作接口对接不同底层 FS",
+      "C. 取消 open",
+      "D. 只用于网络"
+    ],
+    "answer": "B",
+    "explanation": "VFS 抽象使 syscalls 与具体 FS 解耦。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["filesystem", "io"],
+    "content": "O_APPEND 打开模式意味着？",
+    "options": [
+      "A. 每次写前将偏移置到文件末尾",
+      "B. 禁止写",
+      "C. 截断为 0",
+      "D. 映射为可执行"
+    ],
+    "answer": "A",
+    "explanation": "追加写保证写在末尾（实现需原子性）。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["filesystem"],
+    "content": "位图（bitmap）在简易 FS 中常用于？",
+    "options": [
+      "A. 调度进程",
+      "B. 标记 inode/数据块空闲与占用",
+      "C. 存储用户密码哈希唯一结构",
+      "D. TLB 填充"
+    ],
+    "answer": "B",
+    "explanation": "分配器查位图找空闲资源。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["filesystem", "concurrency"],
+    "content": "多进程同时写同一文件时，内核应保证？",
+    "options": [
+      "A. 无任何同步也可数据不错乱（总是）",
+      "B. 对 inode/块分配等关键结构加锁，避免元数据损坏",
+      "C. 禁止一切并发",
+      "D. 只用用户态锁即可替代内核"
+    ],
+    "answer": "B",
+    "explanation": "FS 元数据并发是正确性关键。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["filesystem"],
+    "content": "当前工作目录（cwd）影响？",
+    "options": [
+      "A. 绝对路径解析",
+      "B. 相对路径的起点",
+      "C. 页表权限",
+      "D. CPU 频率"
+    ],
+    "answer": "B",
+    "explanation": "相对路径从 cwd 开始 walk。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "Unix 中存储文件元数据与数据块索引的核心对象叫______。",
+    "answer": "inode",
+    "explanation": "索引节点。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 35,
+    "knowledgePoints": ["filesystem", "syscall"],
+    "content": "用户态用来标识已打开文件的非负整数句柄称为______（两字母缩写亦可写全称）。",
+    "answer": "fd",
+    "explanation": "file descriptor 文件描述符。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "符号链接在路径 walk 时需要？",
+    "options": [
+      "A. 忽略",
+      "B. 读取链接内容并继续解析目标路径（注意循环）",
+      "C. 当作普通空文件结束",
+      "D. 提升权限"
+    ],
+    "answer": "B",
+    "explanation": "symlink 递归解析需防环与深度限制。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["filesystem", "io"],
+    "content": "fsync 的语义倾向于？",
+    "options": [
+      "A. 仅刷新用户态 stdio 缓冲",
+      "B. 将文件相关脏数据/元数据尽量持久化到存储",
+      "C. 删除文件",
+      "D. 关闭 fd 必选"
+    ],
+    "answer": "B",
+    "explanation": "持久化保证，代价是延迟。",
+    "stage": "professional"
+  }
+]

@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "opencamp": {
+    "docsHint": "结合 rCore-Tutorial 与训练营讲义阅读",
+    "repo": "https://github.com/rcore-os/rCore-Tutorial-v3"
+  },
+  "tagMap": {
+    "process": ["os-theory/02-process-thread.md"],
+    "thread": ["os-theory/02-process-thread.md"],
+    "state": ["os-theory/02-process-thread.md"],
+    "pcb": ["os-theory/02-process-thread.md"],
+    "fork": ["os-theory/02-process-thread.md", "cards/process-fork.md"],
+    "scheduling": ["os-theory/02-process-thread.md", "cards/scheduling.md"],
+    "memory": ["os-theory/03-memory.md", "cards/virtual-memory.md"],
+    "virtual_memory": ["os-theory/03-memory.md", "cards/virtual-memory.md"],
+    "page_fault": ["os-theory/03-memory.md", "cards/virtual-memory.md"],
+    "filesystem": ["os-theory/04-filesystem.md", "cards/inode.md"],
+    "inode": ["os-theory/04-filesystem.md", "cards/inode.md"],
+    "io": ["os-theory/05-io.md"],
+    "concurrency": ["os-theory/06-concurrency.md", "cards/locks.md"],
+    "lock": ["os-theory/06-concurrency.md", "cards/locks.md"],
+    "spinlock": ["os-theory/06-concurrency.md", "cards/locks.md"],
+    "deadlock": ["os-theory/06-concurrency.md", "cards/locks.md"],
+    "interrupt": ["os-theory/01-overview.md", "cards/trap-syscall.md"],
+    "trap": ["cards/trap-syscall.md"],
+    "syscall": ["cards/trap-syscall.md"],
+    "rust": ["rust/01-basics.md", "rust/02-ownership.md"],
+    "ownership": ["rust/02-ownership.md", "cards/ownership.md"],
+    "borrow": ["rust/02-ownership.md", "cards/ownership.md"],
+    "lifetime": ["rust/02-ownership.md"],
+    "overview": ["os-theory/01-overview.md"]
+  },
+  "stageLabs": {
+    "pre_study_theory": {
+      "label": "导学-理论",
+      "focus": "OS 基本概念：进程、内存、文件、中断",
+      "labs": [],
+      "reads": ["os-theory/01-overview.md", "os-theory/02-process-thread.md"]
+    },
+    "pre_study_rust": {
+      "label": "导学-Rust",
+      "focus": "所有权、借用、Result/Option",
+      "labs": [],
+      "reads": ["rust/01-basics.md", "rust/02-ownership.md"]
+    },
+    "pre_study_tools": {
+      "label": "导学-工具",
+      "focus": "环境、Git、调试、阅读代码",
+      "labs": ["env-setup"],
+      "reads": ["rust/09-modules.md"]
+    },
+    "basic": {
+      "label": "基础阶段",
+      "focus": "Rust 进阶 + 最小内核概念",
+      "labs": ["lab1-batch"],
+      "reads": ["os-theory/03-memory.md", "cards/trap-syscall.md"]
+    },
+    "professional": {
+      "label": "专业阶段",
+      "focus": "地址空间、进程、文件、并发",
+      "labs": ["lab2-address", "lab3-process", "lab4-filesystem", "lab5-concurrency"],
+      "reads": ["os-theory/03-memory.md", "os-theory/04-filesystem.md", "os-theory/06-concurrency.md"]
+    },
+    "project_intro": {
+      "label": "项目先导",
+      "focus": "组件化 OS 与实验串讲",
+      "labs": ["lab-compose"],
+      "reads": ["os-theory/01-overview.md"]
+    },
+    "project": {
+      "label": "项目阶段",
+      "focus": "项目实现与答辩",
+      "labs": ["project-final"],
+      "reads": []
+    }
+  }
+}

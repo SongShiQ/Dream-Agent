@@ -1,0 +1,320 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["process", "fork"],
+    "content": "lab3 中 fork 成功后，子进程返回值在用户态通常是？",
+    "options": [
+      "A. 父进程 PID",
+      "B. 0",
+      "C. -1",
+      "D. 随机"
+    ],
+    "answer": "B",
+    "explanation": "惯例：子返回 0，父返回子 PID，失败 -1。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["process", "fork"],
+    "content": "fork 时需要复制或共享的关键内核对象包括？",
+    "options": [
+      "A. 仅复制 PID 数字",
+      "B. 地址空间（常 COW）、trap 上下文、打开文件等按语义处理",
+      "C. 只复制磁盘全部内容",
+      "D. 不创建 PCB"
+    ],
+    "answer": "B",
+    "explanation": "fork 语义是克隆进程执行上下文。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["process", "pcb"],
+    "content": "进程控制块中保存「父进程指针/PID」主要用于？",
+    "options": [
+      "A. 美化输出",
+      "B. wait/回收与信号等父子关系语义",
+      "C. 页表遍历加速",
+      "D. 替换调度器"
+    ],
+    "answer": "B",
+    "explanation": "wait 需要找到子进程退出状态。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["process", "scheduling"],
+    "content": "调用 yield 系统调用的预期效果是？",
+    "options": [
+      "A. 进程退出",
+      "B. 主动让出 CPU，进入调度选择其它就绪进程",
+      "C. 关闭中断永久",
+      "D. 删除页表"
+    ],
+    "answer": "B",
+    "explanation": "协作式让出；也可配合时间片抢占。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["process", "scheduling"],
+    "content": "时间片用尽触发调度时，当前进程状态应变为？",
+    "options": [
+      "A. 阻塞等待 I/O",
+      "B. 就绪（仍可运行）",
+      "C. 僵尸",
+      "D. 不可中断睡眠必选"
+    ],
+    "answer": "B",
+    "explanation": "被抢占后回到就绪队列。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["process", "fork"],
+    "content": "exec 系统调用的核心语义是？",
+    "options": [
+      "A. 创建新 PID",
+      "B. 用新程序镜像替换当前地址空间并从头执行",
+      "C. 仅修改优先级",
+      "D. 复制父进程后再返回"
+    ],
+    "answer": "B",
+    "explanation": "fork+exec 是创建新程序常见组合。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["process"],
+    "content": "waitpid/wait 的作用是？",
+    "options": [
+      "A. 创建线程",
+      "B. 等待子进程结束并回收其退出状态与资源",
+      "C. 映射设备",
+      "D. 刷新 TLB 仅此"
+    ],
+    "answer": "B",
+    "explanation": "避免僵尸进程占用 PCB。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["process", "pcb"],
+    "content": "僵尸进程（zombie）指？",
+    "options": [
+      "A. 正在运行的进程",
+      "B. 已退出但退出状态尚未被父进程 wait 回收",
+      "C. 内核线程",
+      "D. 中断处理程序"
+    ],
+    "answer": "B",
+    "explanation": "需保留退出码直到父回收。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["process", "scheduling"],
+    "content": "stride / 优先级调度相对简单 RR 的特点是？",
+    "options": [
+      "A. 完全随机",
+      "B. 可按权重分配 CPU 份额",
+      "C. 不能抢占",
+      "D. 只调度中断"
+    ],
+    "answer": "B",
+    "explanation": "教学内核常实现简易优先级或 stride。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["process", "fork", "virtual_memory"],
+    "content": "fork 后子进程修改某全局变量，父进程同变量通常？",
+    "options": [
+      "A. 一定同步变化（共享同一物理页且可写无 COW）",
+      "B. 在 COW/独立地址空间下互不影响",
+      "C. 父进程变量被删除",
+      "D. 触发死锁必现"
+    ],
+    "answer": "B",
+    "explanation": "独立地址空间或 COW 复制后各自私有。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["process", "state"],
+    "content": "进程因 wait 子进程而睡眠时，属于？",
+    "options": [
+      "A. 运行态",
+      "B. 阻塞/等待态",
+      "C. 就绪且可立即无条件运行",
+      "D. 终止且已回收"
+    ],
+    "answer": "B",
+    "explanation": "等待事件完成前不可调度运行。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["process", "trap"],
+    "content": "进程切换（context switch）时必须保存/恢复的包括？",
+    "options": [
+      "A. 仅 PC",
+      "B. 通用寄存器、栈指针、页表/satp、特权相关状态等",
+      "C. 全部磁盘内容",
+      "D. 只保存文件名"
+    ],
+    "answer": "B",
+    "explanation": "完整上下文才能正确恢复执行。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["process", "scheduling"],
+    "content": "调度点可能出现在？",
+    "options": [
+      "A. 仅开机一次",
+      "B. 时钟中断、阻塞、yield、退出等路径",
+      "C. 仅用户态库函数",
+      "D. 仅编译期"
+    ],
+    "answer": "B",
+    "explanation": "内核多处可进入 schedule。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["process", "ipc"],
+    "content": "父子进程通过管道通信前，通常需要？",
+    "options": [
+      "A. 先 fork 再在两端关闭不用的读写端",
+      "B. 先 exec 再 fork 无法通信",
+      "C. 必须共享同一 PID",
+      "D. 关闭页表"
+    ],
+    "answer": "A",
+    "explanation": "经典 pipe+fork 模式。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["process", "fork"],
+    "content": "若父进程先于子进程退出且未 wait，子进程可能？",
+    "options": [
+      "A. 永远无法退出",
+      "B. 被 init/托管进程收养，避免永久僵尸（实现相关）",
+      "C. 自动获得父的全部物理内存无限制",
+      "D. 提升为内核"
+    ],
+    "answer": "B",
+    "explanation": "现代 OS 有 reparent；教学内核需按实验规格处理。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["process", "pcb"],
+    "content": "PID 分配需要保证？",
+    "options": [
+      "A. 可立即复用仍存活进程的 PID",
+      "B. 在进程存活期间唯一，回收策略避免竞态",
+      "C. 必须等于页号",
+      "D. 必须连续且永不复用"
+    ],
+    "answer": "B",
+    "explanation": "唯一性是 wait/kill 语义前提。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["process", "scheduling"],
+    "content": "空闲进程/idle 的作用是？",
+    "options": [
+      "A. 占用全部内存",
+      "B. 无用户就绪任务时安全空转或低功耗等待",
+      "C. 替代中断",
+      "D. 只跑用户 shell"
+    ],
+    "answer": "B",
+    "explanation": "保证调度器总能选到可运行实体。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["process", "fork"],
+    "content": "创建子进程的经典系统调用名称是______。",
+    "answer": "fork",
+    "explanation": "POSIX fork 克隆进程。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["process"],
+    "content": "用新程序替换当前进程镜像的系统调用名称是______。",
+    "answer": "exec",
+    "explanation": "exec 族系统调用加载新 ELF 等。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["process", "thread"],
+    "content": "进程切换与线程切换相比，通常更昂贵是因为？",
+    "options": [
+      "A. 线程一定更多寄存器",
+      "B. 进程切换常伴随地址空间（页表/TLB）切换",
+      "C. 线程不能有栈",
+      "D. 进程没有 PCB"
+    ],
+    "answer": "B",
+    "explanation": "AS 切换与 TLB 失效成本高。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 65,
+    "knowledgePoints": ["process", "fork", "trap"],
+    "content": "实现 fork 时复制 trap 上下文后，通常要修改子进程上下文中的？",
+    "options": [
+      "A. 返回值寄存器（使子看到 0）及栈/地址空间相关字段",
+      "B. 删除 sepc",
+      "C. 清空全部通用寄存器为 0 且不设返回值",
+      "D. 关闭分页"
+    ],
+    "answer": "A",
+    "explanation": "父子从 fork 返回路径分开，返回值不同。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["process", "scheduling"],
+    "content": "就绪队列中进程的共同特点是？",
+    "options": [
+      "A. 正在 CPU 上运行",
+      "B. 具备运行条件，等待被调度",
+      "C. 等待磁盘必选",
+      "D. 已退出"
+    ],
+    "answer": "B",
+    "explanation": "就绪=可运行未占用 CPU。",
+    "stage": "professional"
+  }
+]

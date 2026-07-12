@@ -1,0 +1,269 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": [
+      "filesystem",
+      "inode"
+    ],
+    "content": "Unix inode 主要存放？",
+    "options": [
+      "A. 文件名",
+      "B. 元数据（权限、大小、块指针等）",
+      "C. 目录树全文",
+      "D. 用户密码"
+    ],
+    "answer": "B",
+    "explanation": "文件名在目录项中，inode 存元数据。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "filesystem"
+    ],
+    "content": "硬链接的特点是？",
+    "options": [
+      "A. 跨文件系统任意建",
+      "B. 多个目录项指向同一 inode",
+      "C. 删除任一链接文件必删",
+      "D. 只能链目录"
+    ],
+    "answer": "B",
+    "explanation": "硬链接共享 inode，链接计数归零才删数据。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "filesystem"
+    ],
+    "content": "符号链接（软链接）存放的是？",
+    "options": [
+      "A. 目标路径字符串",
+      "B. 目标 inode 号必然相同",
+      "C. 文件全部内容副本",
+      "D. 仅权限位"
+    ],
+    "answer": "A",
+    "explanation": "软链接是特殊文件，内容为路径。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "filesystem"
+    ],
+    "content": "VFS 的作用是？",
+    "options": [
+      "A. 为不同具体文件系统提供统一抽象接口",
+      "B. 只支持 ext4",
+      "C. 替代块设备",
+      "D. 做进程调度"
+    ],
+    "answer": "A",
+    "explanation": "Virtual File System 统一 open/read 等接口。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": [
+      "filesystem"
+    ],
+    "content": "目录本质是？",
+    "options": [
+      "A. 特殊文件，记录名字到 inode 的映射",
+      "B. inode 本身",
+      "C. 内存缓存",
+      "D. 线程"
+    ],
+    "answer": "A",
+    "explanation": "目录项 name→inode。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "filesystem"
+    ],
+    "content": "打开文件表（per-process）主要记录？",
+    "options": [
+      "A. 当前偏移、指向系统打开文件等",
+      "B. 仅文件名",
+      "C. 仅 inode 内容全文",
+      "D. CPU 寄存器"
+    ],
+    "answer": "A",
+    "explanation": "fd 对应打开文件描述。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 35,
+    "knowledgePoints": [
+      "filesystem",
+      "inode"
+    ],
+    "content": "在 Unix 中，文件名通常存储在______中，而不是 inode 内。",
+    "answer": "目录项",
+    "explanation": "directory entry。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": [
+      "filesystem"
+    ],
+    "content": "日志文件系统的主要收益是？",
+    "options": [
+      "A. 崩溃后更快恢复一致性",
+      "B. 一定更快顺序读",
+      "C. 取消缓存",
+      "D. 不需要权限"
+    ],
+    "answer": "A",
+    "explanation": "通过 journal 保证元数据/数据一致性恢复。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": [
+      "concurrency",
+      "lock"
+    ],
+    "content": "临界区是指？",
+    "options": [
+      "A. 访问共享资源且需互斥的代码段",
+      "B. 内核全部代码",
+      "C. 用户 main 函数",
+      "D. 中断向量表"
+    ],
+    "answer": "A",
+    "explanation": "需要互斥保护的共享访问区域。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "concurrency",
+      "spinlock"
+    ],
+    "content": "自旋锁适合？",
+    "options": [
+      "A. 临界区很长且可睡眠",
+      "B. 临界区很短，持锁时间极短",
+      "C. 单线程程序",
+      "D. 仅用户态文件锁"
+    ],
+    "answer": "B",
+    "explanation": "忙等适合短临界区，长临界区浪费 CPU。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "concurrency",
+      "lock"
+    ],
+    "content": "互斥锁与自旋锁的重要区别？",
+    "options": [
+      "A. 互斥锁争用时可睡眠/阻塞，自旋锁忙等",
+      "B. 完全相同",
+      "C. 自旋锁能被任意中断共享写",
+      "D. 互斥锁不能用于多核"
+    ],
+    "answer": "A",
+    "explanation": "实现与适用场景不同。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": [
+      "concurrency"
+    ],
+    "content": "死锁预防中“破坏循环等待”常用？",
+    "options": [
+      "A. 资源有序分配",
+      "B. 禁止互斥",
+      "C. 禁止多线程",
+      "D. 关闭中断永久"
+    ],
+    "answer": "A",
+    "explanation": "规定资源获取全局顺序可打破环。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "concurrency"
+    ],
+    "content": "数据竞争（data race）是指？",
+    "options": [
+      "A. 多线程无同步地并发读写同一内存且至少一写",
+      "B. 磁盘坏道",
+      "C. 仅编译错误",
+      "D. 仅网络丢包"
+    ],
+    "answer": "A",
+    "explanation": "未定义行为来源之一。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": [
+      "concurrency"
+    ],
+    "content": "原子操作的意义是？",
+    "options": [
+      "A. 在硬件/系统支持下不可分割地完成读改写",
+      "B. 一定比锁慢",
+      "C. 只能用于磁盘",
+      "D. 取消内存"
+    ],
+    "answer": "A",
+    "explanation": "用于无锁或锁实现底层。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "concurrency",
+      "deadlock"
+    ],
+    "content": "死锁的四个必要条件之一是______等待。",
+    "answer": "循环",
+    "explanation": "circular wait。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "interrupt",
+      "trap"
+    ],
+    "content": "系统调用通常通过什么进入内核？",
+    "options": [
+      "A. 陷阱/陷入（trap）或 syscall 指令",
+      "B. 用户直接跳转内核地址",
+      "C. 仅 DMA",
+      "D. 仅页错误"
+    ],
+    "answer": "A",
+    "explanation": "受控陷入内核。",
+    "stage": "basic"
+  }
+]

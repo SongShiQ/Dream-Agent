@@ -1,0 +1,254 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": [
+      "process"
+    ],
+    "content": "PCB（进程控制块）的作用是？",
+    "options": [
+      "A. 保存进程管理所需信息",
+      "B. 存用户密码",
+      "C. 仅存代码",
+      "D. 仅存栈"
+    ],
+    "answer": "A",
+    "explanation": "调度与管理的核心数据结构。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "scheduling"
+    ],
+    "content": "抢占式调度意味着？",
+    "options": [
+      "A. 内核可剥夺正在运行进程的 CPU",
+      "B. 进程永不切换",
+      "C. 只能用户态切换",
+      "D. 无时钟中断"
+    ],
+    "answer": "A",
+    "explanation": "提高响应。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "memory"
+    ],
+    "content": "段错误（segfault）常见原因？",
+    "options": [
+      "A. 非法内存访问",
+      "B. 磁盘满",
+      "C. 仅网络超时",
+      "D. 编译警告"
+    ],
+    "answer": "A",
+    "explanation": "用户态非法地址/权限。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "rust"
+    ],
+    "content": "String 与 &str 的关系？",
+    "options": [
+      "A. String 拥有堆数据，&str 是借用视图",
+      "B. 完全相同",
+      "C. &str 可变拥有",
+      "D. String 不能转 &str"
+    ],
+    "answer": "A",
+    "explanation": "常见所有权模式。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": [
+      "deadlock"
+    ],
+    "content": "银行家算法用于？",
+    "options": [
+      "A. 死锁避免",
+      "B. 磁盘调度",
+      "C. 页替换",
+      "D. 编译优化"
+    ],
+    "answer": "A",
+    "explanation": "资源分配安全性检查。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "filesystem"
+    ],
+    "content": "绝对路径从哪里开始？",
+    "options": [
+      "A. 根目录",
+      "B. 当前目录",
+      "C. 用户家目录必然",
+      "D. 仅相对"
+    ],
+    "answer": "A",
+    "explanation": "/ 开始。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "virtual_memory"
+    ],
+    "content": "多级页表的主要收益？",
+    "options": [
+      "A. 稀疏地址空间下节省页表内存",
+      "B. 一定更快 TLB miss",
+      "C. 取消权限",
+      "D. 取消物理内存"
+    ],
+    "answer": "A",
+    "explanation": "按需分配中间层。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": [
+      "rust",
+      "ownership"
+    ],
+    "content": "Drop trait 在何时调用？",
+    "options": [
+      "A. 值离开作用域被丢弃时",
+      "B. 每次借用",
+      "C. 仅 panic",
+      "D. 链接时"
+    ],
+    "answer": "A",
+    "explanation": "资源释放。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": [
+      "concurrency"
+    ],
+    "content": "优先级反转可用什么缓解？",
+    "options": [
+      "A. 优先级继承等协议",
+      "B. 关闭所有中断永久",
+      "C. 禁止锁",
+      "D. 只用单线程且不要 OS"
+    ],
+    "answer": "A",
+    "explanation": "经典问题。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "trap",
+      "interrupt"
+    ],
+    "content": "时钟中断对分时系统的意义？",
+    "options": [
+      "A. 提供周期性调度时机",
+      "B. 只用于关机",
+      "C. 只用于磁盘",
+      "D. 无意义"
+    ],
+    "answer": "A",
+    "explanation": "时间片轮转基础。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "process",
+      "ipc"
+    ],
+    "content": "共享内存 IPC 的特点？",
+    "options": [
+      "A. 快，但需同步",
+      "B. 最慢",
+      "C. 内核自动互斥一切访问",
+      "D. 不能传数据"
+    ],
+    "answer": "A",
+    "explanation": "用户态直接访存。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "memory"
+    ],
+    "content": "物理地址是？",
+    "options": [
+      "A. 总线上的真实内存地址",
+      "B. 编译器行号",
+      "C. URL",
+      "D. 端口号"
+    ],
+    "answer": "A",
+    "explanation": "与虚拟地址相对。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "process"
+    ],
+    "content": "创建子进程最常用的系统调用是______。",
+    "answer": "fork",
+    "explanation": "或 clone。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": [
+      "rust"
+    ],
+    "content": "Rc 与 Arc 的区别？",
+    "options": [
+      "A. Arc 原子引用计数可跨线程",
+      "B. Rc 更快跨线程",
+      "C. 都不是智能指针",
+      "D. Arc 不能共享"
+    ],
+    "answer": "A",
+    "explanation": "并发选择 Arc。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 65,
+    "knowledgePoints": [
+      "memory"
+    ],
+    "content": "页替换算法 LRU 的思路是？",
+    "options": [
+      "A. 换出最久未使用页",
+      "B. 随机",
+      "C. 换出最新页",
+      "D. 换出最大页"
+    ],
+    "answer": "A",
+    "explanation": "局部性假设。",
+    "stage": "professional"
+  }
+]

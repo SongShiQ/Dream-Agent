@@ -1,0 +1,345 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": [
+      "process",
+      "state"
+    ],
+    "content": "进程与程序最本质的区别是？",
+    "options": [
+      "A. 进程是动态的执行实体，程序是静态文件",
+      "B. 程序比进程占用更多内存",
+      "C. 进程不能并发，程序可以",
+      "D. 没有区别"
+    ],
+    "answer": "A",
+    "explanation": "程序是磁盘上的可执行文件；进程是程序的一次执行实例，拥有独立地址空间与运行状态。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": [
+      "process",
+      "state"
+    ],
+    "content": "下列哪项不是进程的基本状态？",
+    "options": [
+      "A. 就绪",
+      "B. 运行",
+      "C. 阻塞",
+      "D. 编译"
+    ],
+    "answer": "D",
+    "explanation": "经典三态是就绪、运行、阻塞（等待）。编译不是运行时状态。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "process",
+      "scheduling"
+    ],
+    "content": "短作业优先（SJF）调度的主要问题是？",
+    "options": [
+      "A. 吞吐量一定最低",
+      "B. 长作业可能饥饿",
+      "C. 无法在单核使用",
+      "D. 必须抢占"
+    ],
+    "answer": "B",
+    "explanation": "SJF 偏向短作业，长作业可能长期得不到调度。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "process",
+      "scheduling"
+    ],
+    "content": "时间片轮转（RR）中时间片过小会导致？",
+    "options": [
+      "A. 响应变差",
+      "B. 上下文切换开销增大",
+      "C. 吞吐必然提高",
+      "D. 死锁"
+    ],
+    "answer": "B",
+    "explanation": "时间片过小会使切换过于频繁，有效计算比例下降。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "process",
+      "fork"
+    ],
+    "content": "fork 成功后，父子进程默认？",
+    "options": [
+      "A. 共享同一页表且写共享",
+      "B. 拥有独立地址空间（常配合 COW）",
+      "C. 共享同一 PID",
+      "D. 子进程一定先运行"
+    ],
+    "answer": "B",
+    "explanation": "fork 创建子进程副本；现代系统多用写时复制优化。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": [
+      "process",
+      "fork"
+    ],
+    "content": "fork 的返回值在子进程中通常是？",
+    "options": [
+      "A. 父进程 PID",
+      "B. 0",
+      "C. -1",
+      "D. 随机"
+    ],
+    "answer": "B",
+    "explanation": "父进程得到子 PID，子进程得到 0，失败返回 -1。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "process",
+      "ipc"
+    ],
+    "content": "管道（pipe）通信的特点是？",
+    "options": [
+      "A. 双向且任意进程可打开",
+      "B. 半双工，常用于亲缘进程",
+      "C. 只能传文件描述符",
+      "D. 无需内核"
+    ],
+    "answer": "B",
+    "explanation": "传统匿名管道半双工，多用于父子等亲缘进程。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": [
+      "process",
+      "deadlock"
+    ],
+    "content": "死锁四个必要条件不包括？",
+    "options": [
+      "A. 互斥",
+      "B. 占有且等待",
+      "C. 不可抢占",
+      "D. 时间片用尽"
+    ],
+    "answer": "D",
+    "explanation": "四个条件：互斥、占有且等待、不可抢占、循环等待。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "process",
+      "state"
+    ],
+    "content": "进程从运行态因等待 I/O 进入的状态通常叫______。",
+    "answer": "阻塞",
+    "explanation": "也叫等待态/睡眠态。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "process",
+      "thread"
+    ],
+    "content": "线程相对进程的主要优势？",
+    "options": [
+      "A. 一定更安全",
+      "B. 创建与切换开销通常更小，共享地址空间",
+      "C. 不能共享数据",
+      "D. 不需要调度"
+    ],
+    "answer": "B",
+    "explanation": "同进程线程共享地址空间，创建/切换成本通常低于进程。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": [
+      "memory",
+      "virtual_memory"
+    ],
+    "content": "虚拟内存的主要目的是？",
+    "options": [
+      "A. 加快磁盘转速",
+      "B. 让进程以为有连续大地址空间并支持隔离",
+      "C. 取消页表",
+      "D. 只用于 GPU"
+    ],
+    "answer": "B",
+    "explanation": "虚拟内存提供抽象与隔离，支持换页等。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "memory",
+      "virtual_memory"
+    ],
+    "content": "页表的作用是？",
+    "options": [
+      "A. 存文件名",
+      "B. 虚拟地址到物理地址映射",
+      "C. 调度进程",
+      "D. 加密磁盘"
+    ],
+    "answer": "B",
+    "explanation": "页表记录 VPN→PFN 等映射信息。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "memory",
+      "page_fault"
+    ],
+    "content": "缺页异常（page fault）发生在？",
+    "options": [
+      "A. 访问未映射或权限不符的虚地址",
+      "B. 磁盘满",
+      "C. 仅系统调用时",
+      "D. 仅 fork 时"
+    ],
+    "answer": "A",
+    "explanation": "MMU 无法完成地址翻译或权限检查失败时陷入内核。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "memory",
+      "page_fault"
+    ],
+    "content": "按需分页的含义是？",
+    "options": [
+      "A. 启动时装入全部页",
+      "B. 访问时再分配/装入页",
+      "C. 禁止换出",
+      "D. 只用大页"
+    ],
+    "answer": "B",
+    "explanation": "延迟装入，提高启动与内存利用率。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": [
+      "memory"
+    ],
+    "content": "TLB 的作用是？",
+    "options": [
+      "A. 缓存页表翻译结果加速访存",
+      "B. 替换磁盘",
+      "C. 管理文件",
+      "D. 做进程调度"
+    ],
+    "answer": "A",
+    "explanation": "TLB 是地址翻译高速缓存。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "memory"
+    ],
+    "content": "内碎片主要出现在？",
+    "options": [
+      "A. 分页系统中页内未用空间",
+      "B. 仅分段",
+      "C. 仅磁盘坏道",
+      "D. 仅寄存器"
+    ],
+    "answer": "A",
+    "explanation": "固定页大小导致页内浪费称内部碎片。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": [
+      "memory",
+      "virtual_memory"
+    ],
+    "content": "写时复制（COW）常见于？",
+    "options": [
+      "A. fork 后父子共享物理页，写时再复制",
+      "B. 仅 mmap 文件",
+      "C. 仅网络",
+      "D. 编译器优化循环"
+    ],
+    "answer": "A",
+    "explanation": "COW 延迟复制以降低 fork 成本。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 35,
+    "knowledgePoints": [
+      "memory"
+    ],
+    "content": "将虚拟页号翻译为物理页框号的核心数据结构是______。",
+    "answer": "页表",
+    "explanation": "可多级页表。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "memory"
+    ],
+    "content": "交换区（swap）的作用是？",
+    "options": [
+      "A. 把不常用页换到磁盘扩展“内存”",
+      "B. 加速 CPU",
+      "C. 存可执行文件入口",
+      "D. 替代页表"
+    ],
+    "answer": "A",
+    "explanation": "物理内存紧张时换出到磁盘。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "memory"
+    ],
+    "content": "用户态能否直接改页表？",
+    "options": [
+      "A. 能，任意时刻",
+      "B. 通常不能，由内核维护",
+      "C. 只能改权限位",
+      "D. 只能在 Windows"
+    ],
+    "answer": "B",
+    "explanation": "页表属内核数据结构，用户态无权限直接改。",
+    "stage": "basic"
+  }
+]

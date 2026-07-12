@@ -1,0 +1,275 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "互斥锁（mutex）保证的是？",
+    "options": [
+      "A. 所有线程同时进入临界区",
+      "B. 同一时刻至多一个持有者执行受保护临界区",
+      "C. 消除所有中断",
+      "D. 自动死锁恢复"
+    ],
+    "answer": "B",
+    "explanation": "互斥是并发正确性的基本工具。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["concurrency", "spinlock"],
+    "content": "自旋锁适合的场景更偏向？",
+    "options": [
+      "A. 长时阻塞 I/O 等待",
+      "B. 短临界区，持锁期间不能睡眠（如部分中断上下文）",
+      "C. 单线程用户程序唯一选择",
+      "D. 替代文件系统"
+    ],
+    "answer": "B",
+    "explanation": "自旋忙等，长临界区浪费 CPU；睡眠锁更适合长等待。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["concurrency", "spinlock"],
+    "content": "在持有自旋锁期间调用可能阻塞的函数，主要风险是？",
+    "options": [
+      "A. 性能更好",
+      "B. 死锁或长时间占锁导致其它 CPU 空转",
+      "C. 自动升级为 mutex",
+      "D. 无风险"
+    ],
+    "answer": "B",
+    "explanation": "自旋锁临界区必须短且不可睡眠。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "关中断（或关抢占）有时与锁一起使用，是为了？",
+    "options": [
+      "A. 加速磁盘",
+      "B. 防止中断处理与进程上下文并发破坏共享数据",
+      "C. 取消调度器",
+      "D. 提高用户权限"
+    ],
+    "answer": "B",
+    "explanation": "中断可重入访问同一结构，需同步策略。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["concurrency", "deadlock"],
+    "content": "Coffman 条件中，哪一项被误写时就不再构成死锁必要条件集合？",
+    "options": [
+      "A. 互斥",
+      "B. 持有并等待",
+      "C. 可剥夺（正确应为不可剥夺）",
+      "D. 循环等待"
+    ],
+    "answer": "C",
+    "explanation": "四条件为互斥、持有并等待、不可剥夺、循环等待；「可剥夺」写反则不成立。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["concurrency", "deadlock"],
+    "content": "银行家算法属于？",
+    "options": [
+      "A. 死锁检测后杀进程唯一法",
+      "B. 死锁避免：分配前检查安全性",
+      "C. 死锁忽略",
+      "D. 页替换算法"
+    ],
+    "answer": "B",
+    "explanation": "避免进入不安全状态。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["concurrency"],
+    "content": "原子操作（如 CAS）的意义是？",
+    "options": [
+      "A. 多条指令可被任意打断仍正确无需硬件",
+      "B. 提供不可分割的读改写，支撑无锁或锁实现",
+      "C. 仅用于浮点",
+      "D. 替代系统调用"
+    ],
+    "answer": "B",
+    "explanation": "硬件原子原语是同步基础。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "信号量 V/P（up/down）相对二值锁，额外擅长？",
+    "options": [
+      "A. 只能互斥不能同步",
+      "B. 资源计数与等待/唤醒同步",
+      "C. 自动分页",
+      "D. 文件压缩"
+    ],
+    "answer": "B",
+    "explanation": "计数信号量可表示可用资源数。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["concurrency"],
+    "content": "条件变量通常与互斥锁配合，用于？",
+    "options": [
+      "A. 代替页表",
+      "B. 在条件不满足时等待，条件满足时被通知",
+      "C. 关闭 CPU",
+      "D. 分配 inode"
+    ],
+    "answer": "B",
+    "explanation": "wait/notify 模式避免忙等。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "优先级反转问题指？",
+    "options": [
+      "A. 低优先级持锁，高优先级被阻塞，中优先级抢占低优先级导致高优先级间接等待过久",
+      "B. 时钟中断失效",
+      "C. 死锁四条件全无",
+      "D. TLB 全满"
+    ],
+    "answer": "A",
+    "explanation": "可用优先级继承等协议缓解。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["concurrency", "spinlock"],
+    "content": "多核上实现自旋锁，仅用普通 load/store 置锁标志可能？",
+    "options": [
+      "A. 总是正确",
+      "B. 存在竞态，需原子 test-and-set/CAS 等",
+      "C. 编译器禁止",
+      "D. 只在单核错误"
+    ],
+    "answer": "B",
+    "explanation": "读改写必须原子。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "可重入锁（recursive mutex）允许？",
+    "options": [
+      "A. 任意线程重入同一锁",
+      "B. 同一线程多次加锁而不自死锁（计数）",
+      "C. 取消互斥",
+      "D. 中断永久关闭"
+    ],
+    "answer": "B",
+    "explanation": "同线程重入；其它线程仍互斥。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["concurrency", "deadlock"],
+    "content": "破坏「持有并等待」可通过？",
+    "options": [
+      "A. 要求进程一次申请全部所需资源",
+      "B. 允许循环等待",
+      "C. 取消互斥读共享",
+      "D. 强制可剥夺 CPU 即可"
+    ],
+    "answer": "A",
+    "explanation": "预分配或申请失败释放已持有资源等策略。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["concurrency"],
+    "content": "内存屏障（memory barrier）的作用是？",
+    "options": [
+      "A. 加快磁盘",
+      "B. 约束 CPU/编译器重排，保证可见性顺序",
+      "C. 分配堆",
+      "D. 切换页表"
+    ],
+    "answer": "B",
+    "explanation": "无锁与设备驱动常需显式屏障。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "读者-写者锁适合？",
+    "options": [
+      "A. 读多写少，允许多读者并行",
+      "B. 写远多于读且写极短无读",
+      "C. 单线程",
+      "D. 替代文件系统日志"
+    ],
+    "answer": "A",
+    "explanation": "读共享、写互斥提升读吞吐。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "保护临界区的基本同步原语名称是______（mutex 中文或英文）。",
+    "answer": "互斥锁",
+    "explanation": "mutex/互斥锁。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["concurrency", "spinlock"],
+    "content": "通过忙等循环获取的锁称为______。",
+    "answer": "自旋锁",
+    "explanation": "spinlock。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["concurrency", "process"],
+    "content": "内核中 per-CPU 数据结构的动机是？",
+    "options": [
+      "A. 增加全局大锁竞争",
+      "B. 减少跨 CPU 共享与锁争用",
+      "C. 取消中断",
+      "D. 强制单核"
+    ],
+    "answer": "B",
+    "explanation": "扩展性设计：本地化状态。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["concurrency", "deadlock"],
+    "content": "锁顺序约定（lock ordering）用于？",
+    "options": [
+      "A. 提高优先级反转",
+      "B. 预防循环等待导致的死锁",
+      "C. 让自旋更久",
+      "D. 替代原子操作"
+    ],
+    "answer": "B",
+    "explanation": "全局一致加锁顺序是工程实践。",
+    "stage": "professional"
+  }
+]

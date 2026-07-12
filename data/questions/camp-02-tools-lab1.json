@@ -1,0 +1,320 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": ["rust", "syscall"],
+    "content": "训练营环境搭建阶段，确认交叉编译工具链可用的首要目的是？",
+    "options": [
+      "A. 在浏览器直接运行内核",
+      "B. 为目标架构（如 riscv64）生成可链接的裸机/内核二进制",
+      "C. 替换 Git",
+      "D. 取消调试器"
+    ],
+    "answer": "B",
+    "explanation": "rCore 等实验依赖 riscv 目标三元组与链接脚本。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["rust"],
+    "content": "阅读内核代码时，优先定位入口符号（如 rust_main/_start）的原因是？",
+    "options": [
+      "A. 入口决定启动路径与初始化顺序",
+      "B. 入口只含注释",
+      "C. 编译器忽略入口",
+      "D. 入口等价于任意函数"
+    ],
+    "answer": "A",
+    "explanation": "从入口跟踪 BSS 清零、堆初始化、trap 设置等关键步骤。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["trap", "syscall"],
+    "content": "lab1 批处理 OS 中，用户程序与内核切换的关键路径通常是？",
+    "options": [
+      "A. 直接跳转任意地址无保存",
+      "B. trap（异常/系统调用）保存上下文后进入内核处理",
+      "C. 仅靠编译器内联",
+      "D. 用户态改 satp 即可"
+    ],
+    "answer": "B",
+    "explanation": "批处理也需正确 trap 处理系统调用与异常。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["syscall", "trap"],
+    "content": "批处理内核实现 sys_write 时，安全上应首先？",
+    "options": [
+      "A. 信任用户指针任意解引用",
+      "B. 校验用户缓冲区地址与长度落在合法用户空间",
+      "C. 关闭所有中断永不恢复",
+      "D. 把内核栈映射给用户写"
+    ],
+    "answer": "B",
+    "explanation": "系统调用参数来自不可信用户态，必须边界检查。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["trap", "interrupt"],
+    "content": "RISC-V 中 scause 寄存器在 trap 时用于？",
+    "options": [
+      "A. 保存用户栈顶",
+      "B. 指示 trap 原因（中断/异常类型）",
+      "C. 页表根地址",
+      "D. 浮点控制"
+    ],
+    "answer": "B",
+    "explanation": "根据 scause 分发到系统调用、非法指令、缺页等处理。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["trap"],
+    "content": "sepc 在 trap 处理中的典型用途是？",
+    "options": [
+      "A. 记录触发 trap 的 PC，返回时恢复或调整",
+      "B. 存物理页号",
+      "C. 存文件描述符",
+      "D. 存调度优先级"
+    ],
+    "answer": "A",
+    "explanation": "系统调用返回时常 sepc+=4 指向下一条；异常可能重试或杀进程。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["syscall", "process"],
+    "content": "批处理 OS「依次加载多个应用」与多道并发的关键差异是？",
+    "options": [
+      "A. 批处理同时运行全部应用",
+      "B. 批处理通常串行：一应用退出再加载下一应用",
+      "C. 批处理不需要 trap",
+      "D. 批处理必须有文件系统完整 VFS"
+    ],
+    "answer": "B",
+    "explanation": "lab1 常见模型是单应用运行，结束后加载下一批次。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["rust", "trap"],
+    "content": "在 trap 上下文结构体中保存通用寄存器，用 Rust 表达时常见做法是？",
+    "options": [
+      "A. 用全局可变无同步任意写",
+      "B. 定义 #[repr(C)] 结构体与汇编保存/恢复约定一致",
+      "C. 只存到 HashMap",
+      "D. 不保存 ra"
+    ],
+    "answer": "B",
+    "explanation": "与汇编 trap.S 的布局一致才能正确恢复。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["rust"],
+    "content": "使用 QEMU 运行 riscv 内核时，-kernel 或加载地址配置错误会导致？",
+    "options": [
+      "A. 总是正确执行",
+      "B. 入口跑飞、无输出或异常",
+      "C. 自动修复链接脚本",
+      "D. 升级为桌面 OS"
+    ],
+    "answer": "B",
+    "explanation": "链接地址与 QEMU 加载/跳转地址必须匹配实验文档。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["trap", "syscall"],
+    "content": "ecall 从 U 模式陷入 S 模式后，内核如何识别系统调用号？",
+    "options": [
+      "A. 固定写死只能 write",
+      "B. 通常从约定寄存器（如 a7）读取 syscall id",
+      "C. 从硬盘读取",
+      "D. 从 TLB 读取"
+    ],
+    "answer": "B",
+    "explanation": "ABI 约定参数在 a0-a5，调用号常在 a7。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["process", "syscall"],
+    "content": "sys_exit 在批处理内核中的合理行为是？",
+    "options": [
+      "A. 死循环空转占用 CPU",
+      "B. 回收当前应用资源并加载/调度下一个应用或停机",
+      "C. 返回用户态继续跑已退出代码",
+      "D. 格式化磁盘"
+    ],
+    "answer": "B",
+    "explanation": "退出应清理并推进批处理队列。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["interrupt", "trap"],
+    "content": "S 模式中 stvec 寄存器的作用是？",
+    "options": [
+      "A. 用户堆基址",
+      "B. trap 入口地址（直接或向量模式）",
+      "C. 页表 ASID",
+      "D. 浮点舍入模式"
+    ],
+    "answer": "B",
+    "explanation": "内核初始化时设置 stvec 指向 trap handler。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["trap", "memory"],
+    "content": "应用二进制被加载到固定虚拟/物理地址时，链接脚本的作用是？",
+    "options": [
+      "A. 只美化源码",
+      "B. 规定段布局与入口，使加载地址与代码假设一致",
+      "C. 替代页表",
+      "D. 实现文件系统"
+    ],
+    "answer": "B",
+    "explanation": "错误链接地址会导致访问错误或无法启动。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["rust", "syscall"],
+    "content": "用户库中封装 syscall 函数时，为何常用 core::arch 内联汇编或外部符号？",
+    "options": [
+      "A. 纯安全 Rust 可发出 ecall 特权指令",
+      "B. 触发陷入需要特定指令与寄存器约定，需底层接口",
+      "C. 汇编更慢故禁用",
+      "D. 仅为了混淆"
+    ],
+    "answer": "B",
+    "explanation": "ecall 与 ABI 属于底层，标准安全抽象不直接表达。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["trap"],
+    "content": "若用户程序执行非法指令，内核较稳妥的处理是？",
+    "options": [
+      "A. 忽略继续",
+      "B. 记录错误并终止该应用（批处理中进入下一应用）",
+      "C. 提升为机器模式永久执行该指令",
+      "D. 删除内核代码"
+    ],
+    "answer": "B",
+    "explanation": "异常隔离：错误应用不应拖垮内核。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["rust"],
+    "content": "GDB 远程调试 QEMU 时，断点打在内核符号上主要用于？",
+    "options": [
+      "A. 加速仿真",
+      "B. 单步观察 trap、调度与内存初始化路径",
+      "C. 自动写实验报告",
+      "D. 替换 cargo"
+    ],
+    "answer": "B",
+    "explanation": "调试是 lab 排错核心技能。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["syscall", "trap"],
+    "content": "从内核返回用户态前，需要恢复的关键特权状态包括？",
+    "options": [
+      "A. 仅恢复 a0",
+      "B. 恢复通用寄存器、sepc、sstatus 等使特权级与 PC 正确",
+      "C. 清空 satp 必做",
+      "D. 关闭 MMU 永久"
+    ],
+    "answer": "B",
+    "explanation": "sret 依赖 sepc/sstatus 等正确设置。",
+    "stage": "basic"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["trap", "syscall"],
+    "content": "RISC-V 用户态发起系统调用常用的陷阱指令助记符是______。",
+    "answer": "ecall",
+    "explanation": "Environment Call 触发陷入内核。",
+    "stage": "basic"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["trap"],
+    "content": "保存 trap 原因的 CSR 名称是______。",
+    "answer": "scause",
+    "explanation": "Supervisor Cause Register。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["process", "trap"],
+    "content": "批处理阶段尚未实现多地址空间时，应用隔离主要依赖？",
+    "options": [
+      "A. 完整页表隔离（通常 lab2 才做）",
+      "B. 串行执行 + 加载覆盖 + 特权检查（隔离较弱）",
+      "C. 硬件虚拟机",
+      "D. 分布式共识"
+    ],
+    "answer": "B",
+    "explanation": "lab1 重点 trap/syscall；强隔离在后续地址空间实验。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["rust", "syscall"],
+    "content": "make run / cargo 脚本一键启动实验的价值是？",
+    "options": [
+      "A. 隐藏所有错误",
+      "B. 固定构建、链接、打包应用与启动 QEMU 的可复现流程",
+      "C. 禁止阅读 Makefile",
+      "D. 只用于 CI 无本地价值"
+    ],
+    "answer": "B",
+    "explanation": "工具链脚本是训练营工程能力一部分。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["trap", "interrupt"],
+    "content": "开启 S 模式时钟中断前，通常需要？",
+    "options": [
+      "A. 什么都不配",
+      "B. 设置中断委托/使能位、定时器比较值，并写好 handler",
+      "C. 只改用户程序",
+      "D. 禁用 ecall"
+    ],
+    "answer": "B",
+    "explanation": "时钟中断配置是抢占与时间片基础（后续 lab 更完整）。",
+    "stage": "basic"
+  }
+]

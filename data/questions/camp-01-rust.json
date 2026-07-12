@@ -1,0 +1,404 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "Rust 所有权规则中，关于「值与所有者」正确的是？",
+    "options": [
+      "A. 一个值可以同时有多个所有者",
+      "B. 每个值在任意时刻有且仅有一个所有者",
+      "C. 所有者离开作用域后值仍随机可用",
+      "D. 所有权只在运行时检查"
+    ],
+    "answer": "B",
+    "explanation": "所有权在编译期保证：唯一所有者，离开作用域 drop。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "对实现 Copy 的类型（如 i32）赋值时，通常发生？",
+    "options": [
+      "A. move，源变量失效",
+      "B. 按位复制，源变量仍可用",
+      "C. 必须堆分配",
+      "D. 必然 panic"
+    ],
+    "answer": "B",
+    "explanation": "Copy 类型赋值是复制；String 等非 Copy 则 move。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["rust", "borrow"],
+    "content": "同一作用域内，下列借用组合哪项合法？",
+    "options": [
+      "A. 两个 &mut T 同时存在",
+      "B. 一个 &mut T 与一个 &T 同时存在",
+      "C. 多个 &T 同时存在",
+      "D. 任意数量 &mut 与 & 混用"
+    ],
+    "answer": "C",
+    "explanation": "要么多个不可变借用，要么唯一可变借用，不能混用。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["rust", "borrow", "lifetime"],
+    "content": "生命周期标注 'a 的主要作用是？",
+    "options": [
+      "A. 延长堆分配永不释放",
+      "B. 帮助编译器验证引用不会比数据活得更久",
+      "C. 开启垃圾回收",
+      "D. 指定线程优先级"
+    ],
+    "answer": "B",
+    "explanation": "生命周期是编译期约束，防止悬垂引用。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "函数参数为 String 且函数内不再返回时，调用后调用方变量通常？",
+    "options": [
+      "A. 仍可使用原 String",
+      "B. 所有权已移入函数，调用方不能再用",
+      "C. 自动变成 &str",
+      "D. 变为全局静态"
+    ],
+    "answer": "B",
+    "explanation": "按值传入非 Copy 类型发生 move。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["rust", "borrow"],
+    "content": "更推荐函数参数写成 &str 而不是 String 的原因是？",
+    "options": [
+      "A. &str 更慢",
+      "B. 可接受 String 切片与字面量，避免不必要所有权转移",
+      "C. &str 能修改原字符串任意增长",
+      "D. 编译器禁止 String 参数"
+    ],
+    "answer": "B",
+    "explanation": "借用字符串切片更灵活、零成本抽象常见实践。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["rust"],
+    "content": "Option<T> 用于表达？",
+    "options": [
+      "A. 仅错误码",
+      "B. 值可能存在或不存在（Some/None）",
+      "C. 多线程锁",
+      "D. 异步运行时"
+    ],
+    "answer": "B",
+    "explanation": "Option 显式处理空值，避免空指针一类问题。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["rust"],
+    "content": "Result<T, E> 的 Ok/Err 分别表示？",
+    "options": [
+      "A. 成功值 / 错误",
+      "B. 可变 / 不可变",
+      "C. 堆 / 栈",
+      "D. 用户态 / 内核态"
+    ],
+    "answer": "A",
+    "explanation": "Result 是可恢复错误的标准枚举；? 运算符用于传播。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["rust"],
+    "content": "使用 ? 运算符要求当前函数返回类型通常是？",
+    "options": [
+      "A. 任意类型",
+      "B. 实现了 From 转换的 Result（或 Option 等可传播类型）",
+      "C. 只能是 ()",
+      "D. 只能是 i32"
+    ],
+    "answer": "B",
+    "explanation": "? 将 Err 提前返回，需与函数 Result 类型兼容。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["rust"],
+    "content": "match 相对 if let 的优势是？",
+    "options": [
+      "A. 更慢",
+      "B. 可穷尽枚举所有分支，编译器检查遗漏",
+      "C. 不能用于 Option",
+      "D. 禁止绑定内部值"
+    ],
+    "answer": "B",
+    "explanation": "穷尽匹配是 Rust 安全与可读性的重要工具。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "Vec<T> 增长时底层缓冲区可能重新分配，这会导致？",
+    "options": [
+      "A. 所有指向旧缓冲的裸指针/引用可能失效（若违规持有）",
+      "B. 所有权规则被取消",
+      "C. 栈无限增大",
+      "D. 类型变为数组"
+    ],
+    "answer": "A",
+    "explanation": "重新分配使旧指针失效；借用检查防止在持有引用时 push 触发重分配。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["rust", "borrow"],
+    "content": "内部可变性（如 RefCell）允许在不可变借用下修改内部，其检查发生在？",
+    "options": [
+      "A. 编译期完全静态",
+      "B. 运行时借用计数，违规则 panic",
+      "C. 链接期",
+      "D. 从不检查"
+    ],
+    "answer": "B",
+    "explanation": "RefCell 把借用规则推迟到运行时；多线程用 Mutex 等。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["rust"],
+    "content": "trait 对象 dyn Trait 与泛型单态化相比，主要代价是？",
+    "options": [
+      "A. 无代价",
+      "B. 动态分发（虚表）与可能的堆分配/大小未知",
+      "C. 禁止实现方法",
+      "D. 只能用于整数"
+    ],
+    "answer": "B",
+    "explanation": "静态分发快、代码膨胀；动态分发灵活、有间接调用开销。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["rust"],
+    "content": "unsafe 块表示？",
+    "options": [
+      "A. 关闭类型系统",
+      "B. 程序员承诺满足额外安全不变量，可使用危险操作",
+      "C. 自动变正确",
+      "D. 等价于 C 的全部未定义行为被允许且无责任"
+    ],
+    "answer": "B",
+    "explanation": "unsafe 缩小审核面，仍需人工保证内存安全等不变量。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "在内核/嵌入式中常用的 no_std 含义是？",
+    "options": [
+      "A. 禁止任何库",
+      "B. 不链接标准库 std，依赖 core 等，适合无 OS 运行时环境",
+      "C. 只能写宏",
+      "D. 强制垃圾回收"
+    ],
+    "answer": "B",
+    "explanation": "rCore 等内核项目典型 no_std + 自定义入口与分配器。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["rust"],
+    "content": "枚举可以携带数据，这种代数数据类型适合？",
+    "options": [
+      "A. 只存标签无数据",
+      "B. 用类型表达互斥状态（如消息变体）",
+      "C. 替代模块系统",
+      "D. 只能 C 兼容"
+    ],
+    "answer": "B",
+    "explanation": "带数据的 enum + match 是 Rust 表达状态机的利器。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["rust", "lifetime"],
+    "content": "返回函数内局部变量的引用通常会？",
+    "options": [
+      "A. 总是成功",
+      "B. 编译失败：悬垂引用",
+      "C. 运行时自动延长栈帧",
+      "D. 转为 'static"
+    ],
+    "answer": "B",
+    "explanation": "局部变量在返回后销毁，不能返回其引用。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "Rc<T> 适用于单线程共享所有权；跨线程应优先考虑？",
+    "options": [
+      "A. 仍用 Rc",
+      "B. Arc（原子引用计数）配合合适同步原语",
+      "C. 裸指针无同步",
+      "D. Box 自动线程安全"
+    ],
+    "answer": "B",
+    "explanation": "Rc 非线程安全；Arc 可 Send/Sync（在 T 满足约束时）。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["rust"],
+    "content": "Cargo 的 dev-dependencies 主要用于？",
+    "options": [
+      "A. 发布到生产的运行时依赖",
+      "B. 测试与示例等开发期依赖",
+      "C. 替换标准库",
+      "D. 强制 LTO"
+    ],
+    "answer": "B",
+    "explanation": "测试框架、断言库等放在 dev-dependencies。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["rust", "borrow"],
+    "content": "切片类型 [T] 与 Vec<T> 的关系类似？",
+    "options": [
+      "A. 切片拥有堆内存",
+      "B. 切片是对连续序列的借用视图，不拥有所有权",
+      "C. Vec 不能转切片",
+      "D. 切片长度固定且不可变永远"
+    ],
+    "answer": "B",
+    "explanation": "&[T]/&mut [T] 是视图；Vec 拥有分配。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "实现 Drop 的类型在离开作用域时会？",
+    "options": [
+      "A. 调用 drop 方法释放资源",
+      "B. 泄漏内存作为默认",
+      "C. 提升为 'static",
+      "D. 转为裸指针"
+    ],
+    "answer": "A",
+    "explanation": "RAII：Drop 保证锁、文件、内核对象等确定性释放。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["rust"],
+    "content": "panic! 与 Result 错误处理策略上的区别是？",
+    "options": [
+      "A. 无区别",
+      "B. panic 通常表示不可恢复/bug；Result 表示可预期失败",
+      "C. Result 总会终止进程",
+      "D. panic 可类型化错误码传播"
+    ],
+    "answer": "B",
+    "explanation": "库 API 宜用 Result；断言失败等可用 panic。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "Rust 中离开作用域自动释放资源的模式常称为______（缩写四字母）。",
+    "answer": "RAII",
+    "explanation": "Resource Acquisition Is Initialization，结合 Drop 实现。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "fill",
+    "difficulty": 35,
+    "knowledgePoints": ["rust"],
+    "content": "表示「可能没有值」的标准枚举类型名是______。",
+    "answer": "Option",
+    "explanation": "Option<T> = Some(T) | None。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["rust", "borrow"],
+    "content": "可变借用的引用类型写作______ T（填符号与类型占位）。",
+    "answer": "&mut T",
+    "explanation": "可变引用写作 &mut T，同一时刻唯一。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["rust", "lifetime"],
+    "content": "结构体中持有引用字段时，通常必须？",
+    "options": [
+      "A. 忽略生命周期",
+      "B. 为结构体标注生命周期参数并约束字段",
+      "C. 改用 GC",
+      "D. 只能存 i32"
+    ],
+    "answer": "B",
+    "explanation": "含引用的结构体需要生命周期参数保证字段有效。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["rust"],
+    "content": "const 与 static 的常见区别是？",
+    "options": [
+      "A. const 可内部可变任意写",
+      "B. const 是编译期内联的不可变值；static 有固定内存地址",
+      "C. static 不能有类型",
+      "D. 二者完全相同"
+    ],
+    "answer": "B",
+    "explanation": "static 有确定地址，可配合原子/锁做全局状态（需谨慎）。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "在 rCore 中大量使用的「全局分配器 / 堆」未初始化就 Box 会？",
+    "options": [
+      "A. 静默成功",
+      "B. 分配失败或 panic，因此需先正确初始化堆",
+      "C. 自动用栈模拟无限堆",
+      "D. 转成静态区"
+    ],
+    "answer": "B",
+    "explanation": "内核早期必须先建立堆/帧分配器再使用需要堆的抽象。",
+    "stage": "pre_study_rust"
+  }
+]

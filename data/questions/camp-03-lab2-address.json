@@ -1,0 +1,320 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["virtual_memory", "memory"],
+    "content": "lab2 引入多级页表后，每个进程通常拥有？",
+    "options": [
+      "A. 共享同一套可任意改写的全局页表无隔离",
+      "B. 独立的地址空间（独立页表根）",
+      "C. 只能使用物理地址编程",
+      "D. 取消 satp"
+    ],
+    "answer": "B",
+    "explanation": "地址空间隔离是 lab2 核心目标。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["virtual_memory"],
+    "content": "RISC-V Sv39 虚拟地址有效位数约为？",
+    "options": [
+      "A. 16",
+      "B. 32",
+      "C. 39",
+      "D. 64 全部用于翻译"
+    ],
+    "answer": "C",
+    "explanation": "Sv39 使用 39 位 VA，三级页表。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["virtual_memory", "memory"],
+    "content": "satp 寄存器在启用分页后保存？",
+    "options": [
+      "A. 用户栈指针",
+      "B. 页表模式与根页表物理页号等",
+      "C. 系统调用号",
+      "D. 文件偏移"
+    ],
+    "answer": "B",
+    "explanation": "切换进程常切换 satp 指向该进程页表。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["page_fault", "virtual_memory"],
+    "content": "访问未映射用户页触发缺页时，若地址非法，内核应？",
+    "options": [
+      "A. 静默映射任意内核页给用户",
+      "B. 终止进程或返回错误，避免破坏内核",
+      "C. 关闭 MMU",
+      "D. 提升用户到 M 模式"
+    ],
+    "answer": "B",
+    "explanation": "非法访问必须隔离失败，不能泄露内核映射。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["virtual_memory", "memory"],
+    "content": "内核高半区/恒等映射（若采用）的主要目的是？",
+    "options": [
+      "A. 让用户直接写内核",
+      "B. 内核在切换用户页表时仍能访问物理内存与内核数据",
+      "C. 取消 trap",
+      "D. 加速磁盘"
+    ],
+    "answer": "B",
+    "explanation": "内核映射策略保证内核代码数据始终可达。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["virtual_memory"],
+    "content": "页表项中 V 位为 0 表示？",
+    "options": [
+      "A. 页可写",
+      "B. 映射无效，访问将缺页",
+      "C. 页已锁定",
+      "D. 仅用户可执行"
+    ],
+    "answer": "B",
+    "explanation": "Valid 位控制映射是否有效。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["virtual_memory", "memory"],
+    "content": "U 位（user）在页表项中的意义是？",
+    "options": [
+      "A. 仅内核可访问该页",
+      "B. 允许用户态访问该映射（在权限位允许时）",
+      "C. 表示未缓存",
+      "D. 表示大页"
+    ],
+    "answer": "B",
+    "explanation": "用户页需 U=1；内核页通常 U=0 防用户访问。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["virtual_memory", "page_fault"],
+    "content": "写时复制（COW）实现中，共享页通常先标记为？",
+    "options": [
+      "A. 可写且私有",
+      "B. 只读共享，写时缺页再复制",
+      "C. 不可读",
+      "D. 设备内存"
+    ],
+    "answer": "B",
+    "explanation": "写保护触发后分配新物理页并恢复可写。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["memory", "virtual_memory"],
+    "content": "物理页帧分配器（frame allocator）耗尽时，map 操作应？",
+    "options": [
+      "A. 忽略错误继续",
+      "B. 返回错误/panic 策略明确处理，避免部分映射不一致",
+      "C. 随机复用已映射帧无记录",
+      "D. 自动压缩用户代码"
+    ],
+    "answer": "B",
+    "explanation": "资源耗尽必须显式失败并保持结构一致。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["virtual_memory", "trap"],
+    "content": "切换地址空间后通常需要执行的硬件相关操作是？",
+    "options": [
+      "A. 刷新 TLB（如 sfence.vma）避免使用旧翻译",
+      "B. 格式化文件系统",
+      "C. 重编译应用",
+      "D. 清空全部物理内存"
+    ],
+    "answer": "A",
+    "explanation": "TLB 可能缓存旧 AS 的翻译，必须 fence。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["virtual_memory"],
+    "content": "多级页表相对单级大页表的主要优点是？",
+    "options": [
+      "A. 更浪费连续物理内存",
+      "B. 稀疏地址空间下节省页表占用的物理内存",
+      "C. 取消权限位",
+      "D. 不需要 VPN"
+    ],
+    "answer": "B",
+    "explanation": "按需分配中间层页表，适合大而稀疏 VA。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["memory", "page_fault"],
+    "content": "懒分配（demand paging）堆/栈区域时，首次访问会？",
+    "options": [
+      "A. 事先映射全部最大堆",
+      "B. 缺页时再分配物理页并建立映射",
+      "C. 必定杀死进程",
+      "D. 只用寄存器"
+    ],
+    "answer": "B",
+    "explanation": "按需分配降低启动成本与浪费。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["virtual_memory", "syscall"],
+    "content": "copy_from_user 类例程必须处理的风险是？",
+    "options": [
+      "A. 用户指针指向内核或未映射区导致内核崩溃",
+      "B. 用户字符串过短",
+      "C. 编译器版本",
+      "D. 仅性能问题"
+    ],
+    "answer": "A",
+    "explanation": "访问用户指针前要校验或使用安全拷贝，防提权与 panic。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["virtual_memory", "process"],
+    "content": "进程用户栈与内核栈分离的原因包括？",
+    "options": [
+      "A. 无原因",
+      "B. 特权与安全：内核执行使用内核栈，避免用户破坏",
+      "C. 节省页表项到 0",
+      "D. 栈必须共享"
+    ],
+    "answer": "B",
+    "explanation": "trap 后切换到内核栈是经典设计。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["virtual_memory"],
+    "content": "可执行页（X）与可写页（W）同时开启在安全上的风险是？",
+    "options": [
+      "A. 无风险",
+      "B. 便于注入并执行代码（W^X 策略常禁止）",
+      "C. 提高 TLB 命中",
+      "D. 强制 COW"
+    ],
+    "answer": "B",
+    "explanation": "最小权限：代码段 RX，数据段 RW，减少利用面。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["memory", "virtual_memory"],
+    "content": "内核在 map 区域时记录 MemoryArea/MapArea 元数据是为了？",
+    "options": [
+      "A. 仅调试打印",
+      "B. 管理区间权限、缺页处理与 unmap/回收",
+      "C. 替代物理帧分配器",
+      "D. 实现网络协议"
+    ],
+    "answer": "B",
+    "explanation": "逻辑段管理与页表填充配合完成地址空间生命周期。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 65,
+    "knowledgePoints": ["page_fault", "virtual_memory"],
+    "content": "处理 store page fault 做 COW 时，若页引用计数仍 >1，应？",
+    "options": [
+      "A. 直接标记可写共享",
+      "B. 分配新帧、复制内容、降低旧页引用并映射新页可写",
+      "C. 删除页表",
+      "D. 忽略写操作"
+    ],
+    "answer": "B",
+    "explanation": "真正复制后才恢复写权限，保持其它共享者只读。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["virtual_memory"],
+    "content": "RISC-V 启用分页后，存放页表根等信息的 CSR 是______。",
+    "answer": "satp",
+    "explanation": "Supervisor Address Translation and Protection。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["page_fault"],
+    "content": "访问无效或权限不足的页时，CPU 会触发______异常（中文或英文均可，常用中文三字）。",
+    "answer": "缺页",
+    "explanation": "page fault / 缺页异常进入内核处理。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["virtual_memory", "memory"],
+    "content": "恒等映射（identity map）指？",
+    "options": [
+      "A. VA 恒等于 PA 的映射方式",
+      "B. 所有进程共享用户页",
+      "C. 仅映射设备",
+      "D. 无页表"
+    ],
+    "answer": "A",
+    "explanation": "早期或内核窗口常用，简化访问物理内存。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["virtual_memory", "trap"],
+    "content": "在启用分页的系统中，trap 帧放在内核栈而非用户栈，是因为？",
+    "options": [
+      "A. 用户栈一定更大",
+      "B. 用户栈可能被破坏或权限不足，内核执行需可靠栈",
+      "C. 硬件禁止内核栈",
+      "D. 仅美观"
+    ],
+    "answer": "B",
+    "explanation": "安全与正确性要求内核使用受控栈。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["memory"],
+    "content": "页大小为 4KiB 时，页内偏移占？",
+    "options": [
+      "A. 8 位",
+      "B. 12 位",
+      "C. 20 位",
+      "D. 32 位"
+    ],
+    "answer": "B",
+    "explanation": "2^12=4096。",
+    "stage": "professional"
+  }
+]

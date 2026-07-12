@@ -1,0 +1,339 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": [
+      "rust",
+      "ownership"
+    ],
+    "content": "Rust 所有权的核心目标是？",
+    "options": [
+      "A. 编译期保证内存安全",
+      "B. 强制 GC",
+      "C. 禁止堆分配",
+      "D. 取消类型"
+    ],
+    "answer": "A",
+    "explanation": "所有权+借用检查在编译期防 UAF 等。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": [
+      "rust",
+      "ownership"
+    ],
+    "content": "值默认 move 后，原变量？",
+    "options": [
+      "A. 仍可继续用",
+      "B. 一般不可再用（除非 Copy）",
+      "C. 变成 null",
+      "D. 自动 clone"
+    ],
+    "answer": "B",
+    "explanation": "所有权转移后原绑定失效。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "rust",
+      "borrow"
+    ],
+    "content": "同一时刻允许？",
+    "options": [
+      "A. 多个 &T 或一个 &mut T",
+      "B. 多个 &mut T",
+      "C. &T 与 &mut T 并存",
+      "D. 无限 &mut T"
+    ],
+    "answer": "A",
+    "explanation": "借用规则。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "rust",
+      "lifetime"
+    ],
+    "content": "生命周期标注主要帮助？",
+    "options": [
+      "A. 编译器验证引用有效期",
+      "B. 运行时 GC",
+      "C. 加速 CPU",
+      "D. 链接动态库"
+    ],
+    "answer": "A",
+    "explanation": "防悬垂引用。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "rust"
+    ],
+    "content": "Option 用于？",
+    "options": [
+      "A. 表达可能缺失的值",
+      "B. 仅错误码",
+      "C. 仅异步",
+      "D. 仅宏"
+    ],
+    "answer": "A",
+    "explanation": "Some/None。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "rust"
+    ],
+    "content": "Result 用于？",
+    "options": [
+      "A. 可失败操作的返回",
+      "B. 仅成功值",
+      "C. 线程",
+      "D. 文件名"
+    ],
+    "answer": "A",
+    "explanation": "Ok/Err。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": [
+      "rust"
+    ],
+    "content": "unsafe 的含义是？",
+    "options": [
+      "A. 关闭类型系统",
+      "B. 程序员承担部分安全不变量，可做裸指针等",
+      "C. 一定有 UB",
+      "D. 禁止编译"
+    ],
+    "answer": "B",
+    "explanation": "缩小检查边界。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "rust",
+      "ownership"
+    ],
+    "content": "Clone 与 Copy 的区别简述正确的是？",
+    "options": [
+      "A. Copy 隐式位复制，Clone 显式可能深拷贝",
+      "B. 完全一样",
+      "C. Clone 更不安全",
+      "D. Copy 只能用于 String"
+    ],
+    "answer": "A",
+    "explanation": "Copy 类型赋值不 move。",
+    "stage": "basic"
+  },
+  {
+    "type": "fill",
+    "difficulty": 35,
+    "knowledgePoints": [
+      "rust",
+      "borrow"
+    ],
+    "content": "Rust 中可变引用的符号是______。",
+    "answer": "&mut",
+    "explanation": "可变借用。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": [
+      "rust"
+    ],
+    "content": "Send/Sync 与并发的关系？",
+    "options": [
+      "A. 标记类型跨线程转移/共享的安全性",
+      "B. 仅 UI",
+      "C. 仅 async 语法糖",
+      "D. 与线程无关"
+    ],
+    "answer": "A",
+    "explanation": "自动 trait 约束并发安全。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "syscall",
+      "trap"
+    ],
+    "content": "在内核中处理系统调用的统一入口常称为？",
+    "options": [
+      "A. trap/syscall 处理路径",
+      "B. main",
+      "C. BIOS",
+      "D. shell"
+    ],
+    "answer": "A",
+    "explanation": "用户态陷入后的处理流程。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "syscall"
+    ],
+    "content": "系统调用与普通函数调用的关键区别？",
+    "options": [
+      "A. 系统调用切换特权级进入内核",
+      "B. 系统调用更快",
+      "C. 系统调用无参数",
+      "D. 无区别"
+    ],
+    "answer": "A",
+    "explanation": "涉及用户/内核态切换。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": [
+      "process",
+      "scheduling"
+    ],
+    "content": "批处理系统更关注？",
+    "options": [
+      "A. 吞吐与周转",
+      "B. 仅交互延迟",
+      "C. 仅图形",
+      "D. 仅网络"
+    ],
+    "answer": "A",
+    "explanation": "批处理优化整体吞吐。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "memory"
+    ],
+    "content": "地址空间隔离的主要硬件支持是？",
+    "options": [
+      "A. MMU/页表",
+      "B. 仅编译器",
+      "C. 仅磁盘分区",
+      "D. 仅网卡"
+    ],
+    "answer": "A",
+    "explanation": "硬件翻译与权限。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": [
+      "process"
+    ],
+    "content": "上下文切换需要保存？",
+    "options": [
+      "A. 寄存器与关键内核状态等",
+      "B. 仅文件内容",
+      "C. 仅屏幕",
+      "D. 不需要保存"
+    ],
+    "answer": "A",
+    "explanation": "以便恢复运行。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": [
+      "interrupt"
+    ],
+    "content": "中断与异常的共同点？",
+    "options": [
+      "A. 都会打断正常控制流并可能进入内核处理",
+      "B. 都由用户程序主动 call",
+      "C. 都不需要硬件",
+      "D. 都只在关机时"
+    ],
+    "answer": "A",
+    "explanation": "机制类似，来源不同。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": [
+      "filesystem"
+    ],
+    "content": "OS 实验中“文件抽象”常用来？",
+    "options": [
+      "A. 统一设备与存储访问接口",
+      "B. 只读内存",
+      "C. 替代进程",
+      "D. 做调度"
+    ],
+    "answer": "A",
+    "explanation": "everything is a file 思想。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 50,
+    "knowledgePoints": [
+      "syscall"
+    ],
+    "content": "用户程序请求操作系统服务的标准接口叫______。",
+    "answer": "系统调用",
+    "explanation": "system call。",
+    "stage": "basic"
+  },
+  {
+    "type": "choice",
+    "difficulty": 65,
+    "knowledgePoints": [
+      "concurrency",
+      "lock"
+    ],
+    "content": "在内核关中断能解决的是？",
+    "options": [
+      "A. 单核上部分并发问题，不能替代多核同步",
+      "B. 所有多核数据竞争",
+      "C. 磁盘损坏",
+      "D. 编译错误"
+    ],
+    "answer": "A",
+    "explanation": "多核仍需锁等。",
+    "stage": "professional"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": [
+      "process"
+    ],
+    "content": "僵尸进程是指？",
+    "options": [
+      "A. 已退出但父进程未 wait 回收",
+      "B. 正在运行",
+      "C. 未创建",
+      "D. 内核线程"
+    ],
+    "answer": "A",
+    "explanation": "需 wait 收尸。",
+    "stage": "professional"
+  }
+]

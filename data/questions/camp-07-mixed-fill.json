@@ -1,0 +1,182 @@
+[
+  {
+    "type": "fill",
+    "difficulty": 30,
+    "knowledgePoints": ["process", "state"],
+    "content": "进程三态模型中，占用 CPU 正在执行的状态称为______态。",
+    "answer": "运行",
+    "explanation": "运行/Running。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "fill",
+    "difficulty": 35,
+    "knowledgePoints": ["process", "pcb"],
+    "content": "操作系统用来描述和控制进程的数据结构简称______（三字母）。",
+    "answer": "PCB",
+    "explanation": "Process Control Block。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["scheduling"],
+    "content": "按时间片轮转的经典调度算法缩写是______。",
+    "answer": "RR",
+    "explanation": "Round Robin。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "fill",
+    "difficulty": 35,
+    "knowledgePoints": ["memory", "virtual_memory"],
+    "content": "CPU 发出的由程序使用的地址通常称为______地址。",
+    "answer": "虚拟",
+    "explanation": "虚拟地址经 MMU/页表转为物理地址。",
+    "stage": "pre_study_theory"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["memory"],
+    "content": "缓存虚实地址翻译的硬件结构简称______（三字母）。",
+    "answer": "TLB",
+    "explanation": "Translation Lookaside Buffer。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["page_fault"],
+    "content": "访问未在页表中有效映射的页会触发______。",
+    "answer": "缺页异常",
+    "explanation": "page fault。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["filesystem", "inode"],
+    "content": "目录项中的名字通常指向一个______编号（填 inode）。",
+    "answer": "inode",
+    "explanation": "dentry → inode。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 35,
+    "knowledgePoints": ["syscall", "trap"],
+    "content": "用户程序请求内核服务应通过______调用。",
+    "answer": "系统",
+    "explanation": "系统调用 syscall。",
+    "stage": "basic"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["trap"],
+    "content": "RISC-V 上用户态发起系统调用的指令助记符是______。",
+    "answer": "ecall",
+    "explanation": "environment call。",
+    "stage": "basic"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["trap"],
+    "content": "S 模式 trap 向量基址寄存器是______。",
+    "answer": "stvec",
+    "explanation": "Supervisor Trap Vector Base Address。",
+    "stage": "basic"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["rust", "ownership"],
+    "content": "Rust 中值的唯一拥有者在离开作用域时会______该值。",
+    "answer": "丢弃",
+    "explanation": "drop/丢弃释放资源。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["rust", "borrow"],
+    "content": "Rust 规定同一时刻要么一个______引用，要么多个不可变引用。",
+    "answer": "可变",
+    "explanation": "&mut 唯一。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["rust"],
+    "content": "表示可恢复错误的枚举类型名是______。",
+    "answer": "Result",
+    "explanation": "Result<T,E>。",
+    "stage": "pre_study_rust"
+  },
+  {
+    "type": "fill",
+    "difficulty": 50,
+    "knowledgePoints": ["process", "fork"],
+    "content": "克隆当前进程的系统调用名是______。",
+    "answer": "fork",
+    "explanation": "fork。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 50,
+    "knowledgePoints": ["process"],
+    "content": "已退出但未被父进程回收的进程称为______进程。",
+    "answer": "僵尸",
+    "explanation": "zombie。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["virtual_memory"],
+    "content": "RISC-V 控制页表根与模式的 CSR 是______。",
+    "answer": "satp",
+    "explanation": "satp。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 50,
+    "knowledgePoints": ["virtual_memory", "fork"],
+    "content": "fork 后父子共享物理页、首次写入再复制的技术简称______（三字母）。",
+    "answer": "COW",
+    "explanation": "Copy-On-Write。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["concurrency", "deadlock"],
+    "content": "死锁四个必要条件之一：资源不可被强行夺走，称为______。",
+    "answer": "不可剥夺",
+    "explanation": "no preemption。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 40,
+    "knowledgePoints": ["concurrency", "lock"],
+    "content": "通过循环忙等获取的锁叫______锁。",
+    "answer": "自旋",
+    "explanation": "spinlock。",
+    "stage": "professional"
+  },
+  {
+    "type": "fill",
+    "difficulty": 45,
+    "knowledgePoints": ["filesystem"],
+    "content": "描述整个文件系统布局与参数的全局控制块常称______块。",
+    "answer": "超级",
+    "explanation": "superblock。",
+    "stage": "professional"
+  }
+]
