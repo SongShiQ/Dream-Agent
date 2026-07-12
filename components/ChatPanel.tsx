@@ -1,11 +1,12 @@
 'use client';
 
-import { useChat } from 'ai/react';
+import { useChat, type Message } from 'ai/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { useApp } from '@/lib/context/app-context';
+import { readClientLLMConfig } from '@/lib/llm/client-config';
 
 interface ChatPanelProps {
   mode?: string;
@@ -13,18 +14,121 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...' }: ChatPanelProps) {
-  const { setMessageHandler, addRecord } = useApp();
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append } = useChat({
-    api: '/api/chat',
-    onFinish: (message) => {
-      // 记录 AI 回复
-      addRecord({
-        mode: mode as 'chat' | 'quiz' | 'practice' | 'plan' | 'assess',
-        content: message.content,
-        knowledgePoints: [],
-      });
+  const { setMessageHandler, addRecord, user } = useApp();
+  const [chatError, setChatError] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionTitle, setSessionTitle] = useState('新会话');
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+  const [loadKey, setLoadKey] = useState(0); // remount useChat when session changes
+  const newSessionRef = useRef(false);
+
+  const studentId = user?.studentId;
+
+  const loadHistory = useCallback(
+    async (opts?: { forceNew?: boolean; preferSessionId?: string | null }) => {
+      if (!studentId) {
+        setHistoryLoading(false);
+        setInitialMessages([]);
+        setSessionId(null);
+        return;
+      }
+      setHistoryLoading(true);
+      setHistoryError(null);
+      try {
+        if (opts?.forceNew) {
+          // 创建空会话：POST 一条占位不合适；用 GET 最新 + 前端清空，发送时带 newSession
+          newSessionRef.current = true;
+          setInitialMessages([]);
+          setSessionId(null);
+          setSessionTitle('新会话');
+          setLoadKey((k) => k + 1);
+          setHistoryLoading(false);
+          return;
+        }
+
+        const q = new URLSearchParams({
+          studentId,
+          mode,
+          action: 'messages',
+        });
+        if (opts?.preferSessionId) q.set('sessionId', opts.preferSessionId);
+
+        const res = await fetch(`/api/chat?${q.toString()}`);
+        const data = await res.json();
+        if (!res.ok) {
+          setHistoryError(data.error || '加载历史失败');
+          setInitialMessages([]);
+          return;
+        }
+
+        setSessionId(data.session?.id || null);
+        setSessionTitle(data.session?.title || '会话');
+        const msgs: Message[] = (data.messages || []).map(
+          (m: { id: string; role: string; content: string }) => ({
+            id: m.id,
+            role: m.role as Message['role'],
+            content: m.content,
+          })
+        );
+        setInitialMessages(msgs);
+        newSessionRef.current = false;
+        setLoadKey((k) => k + 1);
+      } catch {
+        setHistoryError('网络错误，无法加载历史（仍可直接发送）');
+        setInitialMessages([]);
+      } finally {
+        setHistoryLoading(false);
+      }
     },
-  });
+    [studentId, mode]
+  );
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading, append, error, reload, stop, setMessages } =
+    useChat({
+      id: `chat-${mode}-${loadKey}`,
+      api: '/api/chat',
+      initialMessages,
+      body: {
+        studentId,
+        mode,
+        sessionId: sessionId || undefined,
+        newSession: newSessionRef.current || undefined,
+        llmConfig: readClientLLMConfig(),
+        learnerContext: user
+          ? {
+              name: user.name,
+              currentStage: user.currentStage,
+              weakPoints: user.weakPoints,
+              totalQuestions: user.totalQuestions,
+              correctAnswers: user.correctAnswers,
+            }
+          : undefined,
+      },
+      onResponse: (res) => {
+        const sid = res.headers.get('X-Chat-Session-Id');
+        if (sid) {
+          setSessionId(sid);
+          newSessionRef.current = false;
+        }
+      },
+      onFinish: (message) => {
+        setChatError(null);
+        addRecord({
+          mode: mode as 'chat' | 'quiz' | 'practice' | 'plan' | 'assess',
+          content: message.content.slice(0, 200),
+          knowledgePoints: [],
+        });
+      },
+      onError: (err) => {
+        setChatError(err.message || '聊天请求失败');
+      },
+    });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -32,22 +136,28 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 设置消息发送处理器
+  useEffect(() => {
+    if (error) {
+      setChatError(error.message || '聊天出错');
+    }
+  }, [error]);
+
   useEffect(() => {
     setMessageHandler((content: string) => {
-      if (append) {
-        append({ role: 'user', content });
-        // 记录用户消息
-        addRecord({
-          mode: mode as 'chat' | 'quiz' | 'practice' | 'plan' | 'assess',
-          content,
-          knowledgePoints: [],
-        });
-      }
+      if (!content?.trim() || !append) return;
+      setChatError(null);
+      append({ role: 'user', content });
+      addRecord({
+        mode: mode as 'chat' | 'quiz' | 'practice' | 'plan' | 'assess',
+        content,
+        knowledgePoints: [],
+      });
     });
+    return () => {
+      setMessageHandler(null);
+    };
   }, [append, setMessageHandler, addRecord, mode]);
 
-  // 监听快捷按钮发送的消息
   useEffect(() => {
     const handleMessageEvent = (event: Event) => {
       const customEvent = event as CustomEvent;
@@ -63,22 +173,60 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
     };
   }, [append]);
 
-  // 模式特定的欢迎消息
+  const handleNewSession = () => {
+    setChatError(null);
+    setMessages([]);
+    loadHistory({ forceNew: true });
+  };
+
   const getWelcomeMessage = () => {
+    const weak =
+      user?.weakPoints?.length ? `\n当前薄弱点：${user.weakPoints.slice(0, 5).join('、')}` : '';
     switch (mode) {
       case 'assess':
-        return '我来帮你评估操作系统知识水平。请回答以下问题：\n\n1. 什么是进程？进程和程序有什么区别？\n2. 解释虚拟内存的概念。\n3. 什么是死锁？如何避免？';
+        return `我来帮你评估操作系统知识水平。建议先用「水平评估」面板做 5 题摸底；也可在此自由提问。${weak}`;
       case 'plan':
-        return '我来帮你制定学习计划。请告诉我：\n\n1. 你的学习目标是什么？\n2. 每天可以投入多少时间？\n3. 有哪些基础知识已经掌握？';
+        return `我来帮你制定学习计划。也可使用「学习计划」面板生成可勾选任务。\n\n当前阶段：${user?.currentStage || '未知'}${weak}`;
       case 'practice':
-        return '我来帮你进行专项训练。请告诉我你想训练的知识点，比如：\n\n- 进程管理\n- 内存管理\n- 文件系统\n- 并发编程';
+        return `专项答疑模式。可先去「专项训练」选题练习，再回来问概念。${weak}`;
       default:
-        return '欢迎使用 OpenCamp AI 助教！\n\n我可以帮你：\n- 解答操作系统概念问题\n- 提供代码示例和解释\n- 推荐学习资源\n\n输入你的问题开始学习吧！';
+        return `欢迎使用 OpenCamp AI 助教！\n\n对话会自动保存，刷新后可恢复。\n阶段：${user?.currentStage || '—'} · 已答 ${user?.totalQuestions ?? 0} 题${weak}\n\n输入问题开始；需要空白对话请点「新会话」。`;
     }
   };
 
+  if (historyLoading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center text-muted-foreground text-sm">
+        加载对话历史...
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="px-4 py-2 border-b flex items-center justify-between gap-2 text-sm">
+        <div className="truncate text-muted-foreground">
+          <span className="text-foreground font-medium">{sessionTitle}</span>
+          {sessionId && (
+            <span className="ml-2 text-xs opacity-60">#{sessionId.slice(0, 6)}</span>
+          )}
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Button type="button" variant="outline" size="sm" onClick={() => loadHistory()}>
+            刷新历史
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={handleNewSession}>
+            新会话
+          </Button>
+        </div>
+      </div>
+
+      {historyError && (
+        <div className="mx-4 mt-2 p-2 text-xs text-amber-800 bg-amber-50 rounded border border-amber-100">
+          {historyError}
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <Card className="mr-12">
@@ -87,12 +235,9 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
             </CardContent>
           </Card>
         )}
-        
+
         {messages.map((message) => (
-          <Card
-            key={message.id}
-            className={message.role === 'user' ? 'ml-12' : 'mr-12'}
-          >
+          <Card key={message.id} className={message.role === 'user' ? 'ml-12' : 'mr-12'}>
             <CardContent className="p-3">
               <p className="text-sm font-medium mb-1">
                 {message.role === 'user' ? '你' : 'AI 助教'}
@@ -101,15 +246,42 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
             </CardContent>
           </Card>
         ))}
-        
+
         {isLoading && (
           <Card className="mr-12">
-            <CardContent className="p-3">
+            <CardContent className="p-3 flex items-center justify-between gap-2">
               <p className="text-sm text-muted-foreground">思考中...</p>
+              <button type="button" onClick={() => stop()} className="text-xs underline">
+                停止
+              </button>
             </CardContent>
           </Card>
         )}
-        
+
+        {chatError && (
+          <Card className="mr-12 border-red-200">
+            <CardContent className="p-3 space-y-2">
+              <p className="text-sm text-red-700 whitespace-pre-wrap">{chatError}</p>
+              <p className="text-xs text-muted-foreground">
+                提示：练习 / 摸底 / 计划模板不依赖 LLM，可先去那些模式。
+              </p>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => reload()}>
+                  重试
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setChatError(null)}
+                >
+                  关闭
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -121,7 +293,7 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
           disabled={isLoading}
           className="flex-1"
         />
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading || !input.trim()}>
           发送
         </Button>
       </form>

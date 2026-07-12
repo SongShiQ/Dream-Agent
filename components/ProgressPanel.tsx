@@ -2,12 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useApp } from '@/lib/context/app-context';
+import { STAGE_LABELS as CORE_LABELS, STAGE_ORDER, STAGE_LABS } from '@/lib/adaptive/stage';
 
 interface ProgressData {
   studentId: string;
   currentStage: string;
   totalQuestions: number;
   correctAnswers: number;
+  recentAccuracy: number;
+  currentDifficulty: number;
   weakPoints: string[];
 }
 
@@ -17,54 +21,84 @@ interface ProgressPanelProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  'A1': '导学-零基础',
-  'A2': '导学-有编程经验',
-  'A3': '导学-有其他语言基础',
-  'B1': '基础-Rust 入门',
-  'B2': '基础-Rust 进阶',
-  'B3': '基础-工具使用',
-  'C1': '专业-批处理',
-  'C2': '专业-地址空间',
-  'C3': '专业-进程',
-  'C4': '专业-文件系统',
-  'C5': '专业-并发',
-  'D1': '项目-组件化 OS',
-  'D2': '项目-项目实践',
+  ...CORE_LABELS,
+  A1: '导学-零基础',
+  A2: '导学-有编程经验',
+  B1: '基础-Rust 入门',
+  C1: '专业-批处理',
 };
 
-const STAGES = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3', 'C4', 'C5', 'D1', 'D2'];
+const STAGES = [...STAGE_ORDER];
 
 export function ProgressPanel({ studentId, onBack }: ProgressPanelProps) {
+  const { updateProfile } = useApp();
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!studentId) {
+      setIsLoading(false);
+      setError('无学员 ID');
+      return;
+    }
     fetchProgress();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
 
   const fetchProgress = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`/api/student?id=${studentId}`);
+      const res = await fetch(`/api/student?id=${encodeURIComponent(studentId)}`);
       const data = await res.json();
-      
+
+      if (!res.ok) {
+        setError(data.error || '加载失败');
+        setProgress(null);
+        return;
+      }
+
       if (data.student) {
-        setProgress({
+        let weak: string[] = [];
+        try {
+          weak = Array.isArray(data.student.weakPoints)
+            ? data.student.weakPoints
+            : JSON.parse(data.student.weakPoints || '[]');
+        } catch {
+          weak = [];
+        }
+
+        const stats = data.student.stats || {};
+        const p: ProgressData = {
           studentId: data.student.id,
           currentStage: data.student.currentStage,
-          totalQuestions: data.student._count?.answerRecords || 0,
-          correctAnswers: 0,
-          weakPoints: data.student.weakPoints ? JSON.parse(data.student.weakPoints) : [],
+          totalQuestions: stats.totalQuestions ?? data.student._count?.answerRecords ?? 0,
+          correctAnswers: stats.correctAnswers ?? 0,
+          recentAccuracy: stats.recentAccuracy ?? 0,
+          currentDifficulty: stats.currentDifficulty ?? 50,
+          weakPoints: weak,
+        };
+        setProgress(p);
+        updateProfile({
+          totalQuestions: p.totalQuestions,
+          correctAnswers: p.correctAnswers,
+          currentStage: p.currentStage,
+          weakPoints: p.weakPoints,
+          currentDifficulty: p.currentDifficulty,
         });
       }
-    } catch (error) {
-      console.error('Failed to fetch progress:', error);
+    } catch (e) {
+      console.error('Failed to fetch progress:', e);
+      setError('网络错误');
     } finally {
       setIsLoading(false);
     }
   };
 
   const getStageIndex = (stage: string) => {
-    return STAGES.indexOf(stage);
+    const i = (STAGES as readonly string[]).indexOf(stage);
+    return i >= 0 ? i : 0;
   };
 
   const getProgressPercent = () => {
@@ -81,26 +115,44 @@ export function ProgressPanel({ studentId, onBack }: ProgressPanelProps) {
     );
   }
 
-  if (!progress) {
+  if (error || !progress) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">暂无进度数据</p>
+      <div className="flex flex-col items-center justify-center h-full gap-3">
+        <p className="text-muted-foreground">{error || '暂无进度数据'}</p>
+        <button
+          onClick={fetchProgress}
+          className="text-sm px-3 py-1.5 border rounded-lg hover:bg-muted"
+        >
+          重试
+        </button>
       </div>
     );
   }
 
+  const accuracy =
+    progress.totalQuestions > 0
+      ? Math.round((progress.correctAnswers / progress.totalQuestions) * 100)
+      : 0;
+
   return (
-    <div className="flex flex-col h-full p-4 space-y-4">
+    <div className="flex flex-col h-full p-4 space-y-4 overflow-y-auto">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">学习进度</h2>
-        {onBack && (
-          <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground">
-            返回聊天
+        <div className="flex gap-2">
+          <button
+            onClick={fetchProgress}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            刷新
           </button>
-        )}
+          {onBack && (
+            <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground">
+              返回聊天
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* 总体进度 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">总体进度</CardTitle>
@@ -108,7 +160,9 @@ export function ProgressPanel({ studentId, onBack }: ProgressPanelProps) {
         <CardContent>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>当前阶段: {STAGE_LABELS[progress.currentStage] || progress.currentStage}</span>
+              <span>
+                当前阶段: {STAGE_LABELS[progress.currentStage] || progress.currentStage}
+              </span>
               <span>{getProgressPercent()}%</span>
             </div>
             <div className="w-full bg-secondary rounded-full h-3">
@@ -121,10 +175,9 @@ export function ProgressPanel({ studentId, onBack }: ProgressPanelProps) {
         </CardContent>
       </Card>
 
-      {/* 学习统计 */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">学习统计</CardTitle>
+          <CardTitle className="text-sm">学习统计（服务端）</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
@@ -133,23 +186,28 @@ export function ProgressPanel({ studentId, onBack }: ProgressPanelProps) {
               <p className="text-xs text-muted-foreground">已答题数</p>
             </div>
             <div className="text-center p-3 bg-muted rounded-lg">
-              <p className="text-2xl font-bold">
-                {progress.totalQuestions > 0 
-                  ? Math.round(progress.correctAnswers / progress.totalQuestions * 100) 
-                  : 0}%
-              </p>
+              <p className="text-2xl font-bold">{accuracy}%</p>
               <p className="text-xs text-muted-foreground">正确率</p>
+            </div>
+            <div className="text-center p-3 bg-muted rounded-lg">
+              <p className="text-2xl font-bold">{progress.currentDifficulty}</p>
+              <p className="text-xs text-muted-foreground">当前难度</p>
+            </div>
+            <div className="text-center p-3 bg-muted rounded-lg">
+              <p className="text-2xl font-bold">
+                {Math.round((progress.recentAccuracy || 0) * 100)}%
+              </p>
+              <p className="text-xs text-muted-foreground">近 20 题正确率</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 阶段进度 */}
       <Card className="flex-1 overflow-hidden">
         <CardHeader>
           <CardTitle className="text-sm">阶段进度</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-y-auto">
+        <CardContent className="overflow-y-auto max-h-64">
           <div className="space-y-2">
             {STAGES.map((stage, index) => {
               const currentIndex = getStageIndex(progress.currentStage);
@@ -169,12 +227,9 @@ export function ProgressPanel({ studentId, onBack }: ProgressPanelProps) {
                   </span>
                   <div className="flex-1">
                     <p className={`text-sm font-medium ${isCurrent ? 'text-primary' : ''}`}>
-                      {STAGE_LABELS[stage]}
+                      {STAGE_LABELS[stage] || stage}
                     </p>
                   </div>
-                  {isLocked && (
-                    <span className="text-xs text-muted-foreground">🔒</span>
-                  )}
                 </div>
               );
             })}
@@ -182,7 +237,6 @@ export function ProgressPanel({ studentId, onBack }: ProgressPanelProps) {
         </CardContent>
       </Card>
 
-      {/* 薄弱知识点 */}
       {progress.weakPoints.length > 0 && (
         <Card>
           <CardHeader>
@@ -199,6 +253,38 @@ export function ProgressPanel({ studentId, onBack }: ProgressPanelProps) {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">训练营实验线索</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm space-y-2">
+          <p className="text-muted-foreground">
+            当前：{STAGE_LABELS[progress.currentStage] || progress.currentStage}
+          </p>
+          {(STAGE_LABS[progress.currentStage] || []).length > 0 ? (
+            <ul className="list-disc pl-5 space-y-1">
+              {(STAGE_LABS[progress.currentStage] || []).map((lab) => (
+                <li key={lab}>
+                  <code className="text-xs bg-muted px-1 rounded">{lab}</code>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground text-xs">
+              本阶段以概念与刷题为主，暂无强制 lab。
+            </p>
+          )}
+          <a
+            className="text-xs underline text-muted-foreground hover:text-foreground"
+            href="https://github.com/rcore-os/rCore-Tutorial-v3"
+            target="_blank"
+            rel="noreferrer"
+          >
+            rCore-Tutorial-v3 文档
+          </a>
+        </CardContent>
+      </Card>
     </div>
   );
 }
