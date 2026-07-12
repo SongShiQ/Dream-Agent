@@ -17,6 +17,7 @@ model Student {
   email         String?  @unique
   currentStage  String   @default("pre_study_theory")
   weakPoints    String   @default("[]") // JSON array as string
+  feedbackMode  String   @default("hybrid") // guided | direct | hybrid
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -24,6 +25,7 @@ model Student {
   assessments   Assessment[]
   answerRecords AnswerRecord[]
   learningPlan  LearningPlan?
+  codeSubmissions CodeSubmission[]
 
   @@index([currentStage])
 }
@@ -52,6 +54,7 @@ model Question {
   options         String   @default("[]") // JSON array as string
   answer          String
   explanation     String
+  stage           String   @default("basic") // 导学|基础|专业|项目
   createdAt       DateTime @default(now())
 
   // 关联
@@ -59,6 +62,7 @@ model Question {
 
   @@index([type])
   @@index([difficulty])
+  @@index([stage])
 }
 
 // 答题记录
@@ -71,6 +75,7 @@ model AnswerRecord {
   answer      String
   isCorrect   Boolean
   timeSpent   Int      @default(0) // 秒
+  feedbackMode String  @default("hybrid") // guided | direct | hybrid
   answeredAt  DateTime @default(now())
 
   @@index([studentId])
@@ -90,4 +95,22 @@ model LearningPlan {
   lastAdjustedAt      DateTime  @default(now())
 
   @@index([currentStage])
+}
+
+// 代码提交记录
+model CodeSubmission {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  labName     String   // lab1-batch, lab2-address, etc.
+  code        String   // 提交的代码
+  language    String   @default("rust") // rust | c | asm
+  testResult  String   // 测试结果
+  isPassed    Boolean  @default(false)
+  feedback    String   // AI 反馈
+  createdAt   DateTime @default(now())
+
+  @@index([studentId])
+  @@index([labName])
+  @@index([createdAt])
 }

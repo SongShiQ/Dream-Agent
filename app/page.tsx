@@ -2,6 +2,7 @@
 
 import { ChatPanel } from '@/components/ChatPanel';
 import { ExamPanel } from '@/components/ExamPanel';
+import { SettingsPanel } from '@/components/SettingsPanel';
 import { useApp } from '@/lib/context/app-context';
 import { useState } from 'react';
 
@@ -47,6 +48,7 @@ const LEARNING_MODES = {
 export default function Home() {
   const { user, isLoggedIn, login, logout, currentMode, setMode, sendMessage } = useApp();
   const [showLogin, setShowLogin] = useState(!isLoggedIn);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleLogin = (name: string) => {
     login(name);
@@ -131,6 +133,13 @@ export default function Home() {
                 已答 {user?.totalQuestions || 0} 题 · 
                 正确率 {user?.totalQuestions ? Math.round((user?.correctAnswers || 0) / user.totalQuestions * 100) : 0}%
               </div>
+              <button 
+                onClick={() => setShowSettings(true)}
+                className="text-sm text-muted-foreground hover:text-foreground"
+                title="设置"
+              >
+                ⚙️
+              </button>
               <button 
                 onClick={logout}
                 className="text-sm text-muted-foreground hover:text-foreground"
@@ -229,6 +238,11 @@ export default function Home() {
           </aside>
         </div>
       </div>
+
+      {/* 设置弹窗 */}
+      {showSettings && (
+        <SettingsPanel onClose={() => setShowSettings(false)} />
+      )}
     </main>
   );
 }

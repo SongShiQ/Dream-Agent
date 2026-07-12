@@ -1,14 +1,15 @@
+// Router Agent - 意图识别与路由
+
 import { generateText } from 'ai';
 import { getLLMProvider } from '../llm/factory';
 import type { AgentName, RouterDecision } from './types';
+import { AGENT_DESCRIPTIONS } from './config';
 
-const ROUTER_PROMPT = `你是一个意图识别专家。根据用户消息，判断应该调用哪个专业 Agent。
+// 系统提示词
+const SYSTEM_PROMPT = `你是一个意图识别专家。根据用户消息，判断应该调用哪个专业 Agent。
 
 可用的 Agent：
-- assessor: 评估学员水平，触发词包括"评估"、"我的水平"、"测试一下"、"诊断"
-- tutor: 理论答疑，触发词包括"什么是"、"解释"、"为什么"、"怎么理解"、"原理"
-- examiner: 出题练习，触发词包括"出题"、"练习"、"测试"、"做题"、"题目"
-- planner: 学习规划，触发词包括"计划"、"怎么学"、"下一步"、"进度"、"安排"
+${Object.entries(AGENT_DESCRIPTIONS).map(([name, desc]) => `- ${name}: ${desc}`).join('\n')}
 
 请返回 JSON 格式：
 {
@@ -22,50 +23,20 @@ const ROUTER_PROMPT = `你是一个意图识别专家。根据用户消息，判
 2. intent 必须是上述 agent 名称之一
 3. confidence 是 0-1 之间的数字`;
 
-export async function routeUserMessage(message: string): Promise<RouterDecision> {
-  try {
-    const llm = getLLMProvider('router');
-    
-    const result = await generateText({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      model: llm as any,
-      prompt: `${ROUTER_PROMPT}\n\n用户消息: ${message}`,
-      temperature: 0.3,
-      maxTokens: 256,
-    });
+// 关键词匹配规则
+const KEYWORD_RULES: Record<AgentName, string[]> = {
+  router: [],
+  tutor: ['什么是', '解释', '为什么', '怎么', '原理', '如何', '是什么'],
+  assessor: ['评估', '水平', '测试', '诊断', '评估一下'],
+  examiner: ['出题', '练习', '做题', '题目', '考试'],
+  planner: ['计划', '怎么学', '下一步', '进度', '安排', '规划'],
+};
 
-    // 尝试解析 JSON
-    const jsonMatch = result.text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const decision = JSON.parse(jsonMatch[0]) as RouterDecision;
-      
-      // 验证 intent 是否有效
-      const validIntents: AgentName[] = ['assessor', 'tutor', 'examiner', 'planner'];
-      if (validIntents.includes(decision.intent as AgentName)) {
-        return decision;
-      }
-    }
-    
-    // 如果解析失败，使用关键词匹配作为后备
-    return fallbackRouting(message);
-  } catch (error) {
-    console.error('Router error:', error);
-    return fallbackRouting(message);
-  }
-}
-
+// 关键词匹配（后备方案）
 function fallbackRouting(message: string): RouterDecision {
   const lowerMessage = message.toLowerCase();
   
-  // 关键词匹配
-  const keywords: Record<AgentName, string[]> = {
-    assessor: ['评估', '水平', '测试', '诊断', '评估一下'],
-    tutor: ['什么是', '解释', '为什么', '怎么', '原理', '如何', '是什么'],
-    examiner: ['出题', '练习', '做题', '题目', '考试'],
-    planner: ['计划', '怎么学', '下一步', '进度', '安排', '规划'],
-  };
-
-  for (const [agent, words] of Object.entries(keywords)) {
+  for (const [agent, words] of Object.entries(KEYWORD_RULES)) {
     if (words.some(word => lowerMessage.includes(word))) {
       return {
         intent: agent as AgentName,
@@ -81,4 +52,40 @@ function fallbackRouting(message: string): RouterDecision {
     confidence: 0.4,
     reasoning: '无法识别意图，默认路由到答疑 Agent',
   };
+}
+
+// 验证 intent 是否有效
+function isValidIntent(intent: string): intent is AgentName {
+  return Object.keys(AGENT_DESCRIPTIONS).includes(intent);
+}
+
+// 主路由函数
+export async function routeUserMessage(message: string): Promise<RouterDecision> {
+  try {
+    const llm = getLLMProvider('router');
+    
+    const result = await generateText({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      model: llm as any,
+      prompt: `${SYSTEM_PROMPT}\n\n用户消息: ${message}`,
+      temperature: 0.3,
+      maxTokens: 256,
+    });
+
+    // 尝试解析 JSON
+    const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const decision = JSON.parse(jsonMatch[0]) as RouterDecision;
+      
+      if (isValidIntent(decision.intent)) {
+        return decision;
+      }
+    }
+    
+    // 解析失败，使用关键词匹配
+    return fallbackRouting(message);
+  } catch (error) {
+    console.error('Router error:', error);
+    return fallbackRouting(message);
+  }
 }

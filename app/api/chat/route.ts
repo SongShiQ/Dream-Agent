@@ -2,7 +2,7 @@ import { streamText } from 'ai';
 import { routeUserMessage } from '@/lib/agents/router';
 import { getLLMProvider } from '@/lib/llm/factory';
 import type { AgentName } from '@/lib/agents/types';
-import { AGENT_SYSTEM_PROMPTS } from '@/lib/agents/types';
+import { AGENT_SYSTEM_PROMPTS } from '@/lib/agents/config';
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const decision = await routeUserMessage(lastMessage.content);
 
     // 根据意图选择 Agent
-    const agentName: AgentName = decision.intent === 'multi' ? 'tutor' : decision.intent as AgentName;
+    const agentName: AgentName = decision.intent as AgentName;
     
     let llm;
     try {

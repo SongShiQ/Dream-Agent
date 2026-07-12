@@ -16,11 +16,12 @@ export async function POST(req: Request) {
 
       // 生成新题目
       const weakPoints = student.weakPoints ? JSON.parse(student.weakPoints) : [];
-      const result = await generateQuestion(
+      const result = await generateQuestion({
         studentId,
-        50, // 默认难度
-        weakPoints
-      );
+        currentDifficulty: 50, // 默认难度
+        weakPoints,
+        stage: student.currentStage || 'basic',
+      });
       return NextResponse.json(result);
     }
 
