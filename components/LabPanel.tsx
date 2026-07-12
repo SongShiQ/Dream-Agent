@@ -31,7 +31,7 @@ export function LabPanel({ studentId }: { studentId: string }) {
   const [labName, setLabName] = useState('lab1-batch');
   const [language, setLanguage] = useState('rust');
   const [code, setCode] = useState(
-    '// 粘贴你的 Rust / C 实验代码\nfn main() {\n    println!("hello rCore");\n}\n'
+    '// 粘贴实验相关源码（不要只留默认模板）\n// 空代码或仅 hello 占位会被判为低分/拒绝\n'
   );
   const [testResult, setTestResult] = useState('');
   const [isPassed, setIsPassed] = useState(false);
@@ -194,9 +194,15 @@ export function LabPanel({ studentId }: { studentId: string }) {
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <Button onClick={submit} disabled={isLoading || !studentId}>
+          <Button
+            onClick={submit}
+            disabled={isLoading || !studentId || code.trim().length < 8}
+          >
             {isLoading ? '分析中...' : '提交并分析'}
           </Button>
+          {code.trim().length < 8 && (
+            <p className="text-xs text-amber-700">请先粘贴有效代码（过短无法提交）</p>
+          )}
         </CardContent>
       </Card>
 
@@ -204,7 +210,10 @@ export function LabPanel({ studentId }: { studentId: string }) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">
-              反馈{score != null ? ` · 静态分 ${score}` : ''}
+              反馈
+              {score != null
+                ? ` · 静态分 ${score}${score < 40 ? '（内容不足）' : score < 70 ? '（需加强）' : ''}`
+                : ''}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
