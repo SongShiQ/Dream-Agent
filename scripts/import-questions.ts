@@ -1,5 +1,5 @@
 import prisma from '../lib/db/index';
-import { readFile } from 'fs/promises';
+import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
 
 interface QuestionData {
@@ -10,41 +10,89 @@ interface QuestionData {
   options?: string[];
   answer: string;
   explanation: string;
+  stage?: string;
+}
+
+async function loadAllQuestions(): Promise<QuestionData[]> {
+  const dir = join(process.cwd(), 'data', 'questions');
+  const files = (await readdir(dir)).filter(
+    (f) => f.endsWith('.json') && !f.startsWith('_')
+  );
+  const all: QuestionData[] = [];
+  for (const file of files) {
+    const raw = await readFile(join(dir, file), 'utf-8');
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data)) {
+      console.warn(`Skip non-array file: ${file}`);
+      continue;
+    }
+    console.log(`File ${file}: ${data.length} questions`);
+    all.push(...data);
+  }
+  return all;
 }
 
 async function importQuestions() {
-  const dataPath = join(process.cwd(), 'data', 'questions', 'os-basics.json');
-  const data = await readFile(dataPath, 'utf-8');
-  const questions: QuestionData[] = JSON.parse(data);
+  const questions = await loadAllQuestions();
+  console.log(`Total ${questions.length} questions to process`);
 
-  console.log(`Found ${questions.length} questions to import`);
+  let imported = 0;
+  let skipped = 0;
 
   for (const q of questions) {
+    if (!q.content || !q.answer) {
+      console.warn('Skip invalid question (missing content/answer)');
+      skipped++;
+      continue;
+    }
+
     const existing = await prisma.question.findFirst({
       where: { content: q.content },
     });
 
     if (existing) {
-      console.log(`Skipping duplicate: ${q.content.slice(0, 50)}...`);
+      // 回填 stage / 知识点（若旧数据缺字段）
+      const needUpdate =
+        (q.stage && existing.stage !== q.stage) ||
+        existing.knowledgePoints === '[]';
+      if (needUpdate) {
+        await prisma.question.update({
+          where: { id: existing.id },
+          data: {
+            stage: q.stage || existing.stage,
+            knowledgePoints: JSON.stringify(q.knowledgePoints || []),
+            difficulty: q.difficulty ?? existing.difficulty,
+            options: JSON.stringify(q.options || []),
+            explanation: q.explanation || existing.explanation,
+            answer: q.answer,
+            type: q.type || existing.type,
+          },
+        });
+        console.log(`Updated: ${q.content.slice(0, 40)}...`);
+      } else {
+        skipped++;
+      }
       continue;
     }
 
     await prisma.question.create({
       data: {
-        type: q.type,
-        difficulty: q.difficulty,
-        knowledgePoints: JSON.stringify(q.knowledgePoints),
+        type: q.type || 'choice',
+        difficulty: q.difficulty ?? 50,
+        knowledgePoints: JSON.stringify(q.knowledgePoints || []),
         content: q.content,
         options: JSON.stringify(q.options || []),
         answer: q.answer,
-        explanation: q.explanation,
+        explanation: q.explanation || '',
+        stage: q.stage || 'basic',
       },
     });
-
-    console.log(`Imported: ${q.content.slice(0, 50)}...`);
+    imported++;
+    console.log(`Imported: ${q.content.slice(0, 40)}...`);
   }
 
-  console.log('Import complete');
+  const total = await prisma.question.count();
+  console.log(`Done. imported=${imported} skipped=${skipped} db_total=${total}`);
 }
 
 importQuestions()
