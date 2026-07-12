@@ -1,0 +1,152 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 20,
+    "knowledgePoints": ["ownership"],
+    "stage": "B1",
+    "content": "在 Rust 中，以下哪个说法关于所有权是正确的？",
+    "options": [
+      "A. 一个值可以有多个所有者",
+      "B. 当所有者离开作用域时，值会被丢弃",
+      "C. 所有变量默认是可变的",
+      "D. 引用会导致所有权转移"
+    ],
+    "answer": "B",
+    "explanation": "Rust 的所有权规则之一：当所有者离开作用域时，值会被自动丢弃（drop）。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 25,
+    "knowledgePoints": ["ownership", "borrowing"],
+    "stage": "B1",
+    "content": "以下代码会发生什么？\n```rust\nlet s1 = String::from(\"hello\");\nlet s2 = s1;\nprintln!(\"{}\", s1);\n```",
+    "options": [
+      "A. 正常打印 \"hello\"",
+      "B. 编译错误：s1 已被移动",
+      "C. 运行时错误",
+      "D. 打印空字符串"
+    ],
+    "answer": "B",
+    "explanation": "String 类型赋值会发生所有权移动（move），s1 的所有权转移到 s2 后，s1 不再有效。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 30,
+    "knowledgePoints": ["borrowing", "references"],
+    "stage": "B1",
+    "content": "Rust 的借用规则是什么？",
+    "options": [
+      "A. 可以同时有多个可变引用",
+      "B. 可以同时有多个不可变引用",
+      "C. 不可变引用和可变引用可以同时存在",
+      "D. 引用必须始终有效"
+    ],
+    "answer": "B",
+    "explanation": "Rust 的借用规则：在任意时刻，要么有一个可变引用，要么有多个不可变引用，但不能同时存在。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["structs", "methods"],
+    "stage": "B1",
+    "content": "如何定义一个结构体方法？",
+    "options": [
+      "A. 使用 fn 关键字在结构体外部定义",
+      "B. 使用 impl 块定义",
+      "C. 使用 struct 关键字定义",
+      "D. 使用 method 关键字定义"
+    ],
+    "answer": "B",
+    "explanation": "Rust 使用 impl 块来为结构体定义方法。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["enums", "pattern-matching"],
+    "stage": "B1",
+    "content": "Option<T> 枚举的作用是什么？",
+    "options": [
+      "A. 表示可能失败的操作",
+      "B. 表示可能为空的值",
+      "C. 表示并发操作",
+      "D. 表示异步操作"
+    ],
+    "answer": "B",
+    "explanation": "Option<T> 用于表示一个值可能存在（Some(T)）或不存在（None）。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["error-handling", "result"],
+    "stage": "B2",
+    "content": "? 操作符的作用是什么？",
+    "options": [
+      "A. 抛出异常",
+      "B. 提前返回错误",
+      "C. 忽略错误",
+      "D. 捕获错误"
+    ],
+    "answer": "B",
+    "explanation": "? 操作符用于传播错误，如果 Result 是 Err，会提前返回该错误。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["generics", "traits"],
+    "stage": "B2",
+    "content": "Trait 类似于其他语言中的什么概念？",
+    "options": [
+      "A. 类",
+      "B. 接口",
+      "C. 枚举",
+      "D. 结构体"
+    ],
+    "answer": "B",
+    "explanation": "Trait 类似于其他语言中的接口（interface），定义了类型必须实现的方法。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["lifetimes"],
+    "stage": "B2",
+    "content": "生命周期注解的作用是什么？",
+    "options": [
+      "A. 控制变量的生存时间",
+      "B. 告诉编译器引用之间的关系",
+      "C. 自动释放内存",
+      "D. 防止内存泄漏"
+    ],
+    "answer": "B",
+    "explanation": "生命周期注解帮助编译器理解引用之间的关系，确保引用始终有效。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 60,
+    "knowledgePoints": ["smart-pointers", "box"],
+    "stage": "B2",
+    "content": "Box<T> 的主要用途是什么？",
+    "options": [
+      "A. 共享数据",
+      "B. 在堆上分配数据",
+      "C. 内部可变性",
+      "D. 引用计数"
+    ],
+    "answer": "B",
+    "explanation": "Box<T> 用于在堆上分配数据，而不是在栈上。"
+  },
+  {
+    "type": "choice",
+    "difficulty": 65,
+    "knowledgePoints": ["concurrency", "threads"],
+    "stage": "B2",
+    "content": "Rust 如何保证线程安全？",
+    "options": [
+      "A. 运行时检查",
+      "B. 编译时检查",
+      "C. 垃圾回收",
+      "D. 手动管理"
+    ],
+    "answer": "B",
+    "explanation": "Rust 通过编译时检查（所有权系统）保证线程安全，不需要运行时开销。"
+  }
+]
