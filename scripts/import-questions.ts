@@ -51,18 +51,26 @@ async function importQuestions() {
     });
 
     if (existing) {
-      // 回填 stage / 知识点（若旧数据缺字段）
+      // 回填 stage / 知识点 / 解析 / 答案 / 选项（内容包修订时同步）
+      const newKp = JSON.stringify(q.knowledgePoints || []);
+      const newOpts = JSON.stringify(q.options || []);
       const needUpdate =
         (q.stage && existing.stage !== q.stage) ||
-        existing.knowledgePoints === '[]';
+        existing.knowledgePoints === '[]' ||
+        existing.knowledgePoints !== newKp ||
+        existing.answer !== q.answer ||
+        existing.explanation !== (q.explanation || '') ||
+        existing.options !== newOpts ||
+        (typeof q.difficulty === 'number' && existing.difficulty !== q.difficulty) ||
+        (q.type && existing.type !== q.type);
       if (needUpdate) {
         await prisma.question.update({
           where: { id: existing.id },
           data: {
             stage: q.stage || existing.stage,
-            knowledgePoints: JSON.stringify(q.knowledgePoints || []),
+            knowledgePoints: newKp,
             difficulty: q.difficulty ?? existing.difficulty,
-            options: JSON.stringify(q.options || []),
+            options: newOpts,
             explanation: q.explanation || existing.explanation,
             answer: q.answer,
             type: q.type || existing.type,
