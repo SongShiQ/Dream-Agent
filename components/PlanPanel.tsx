@@ -36,17 +36,12 @@ export function PlanPanel({ studentId }: { studentId: string }) {
   const [customMinutes, setCustomMinutes] = useState(30);
   const [customType, setCustomType] = useState('custom');
   const [savingCustom, setSavingCustom] = useState(false);
-
-  const storageKey = studentId ? `opencamp-plan-check-${studentId}` : '';
+  const progressFingerprint = plan
+    ? `${plan.currentStage}|plan|${plan.dailyTasks.map((t) => t.id).join(',')}`
+    : '';
 
   useEffect(() => {
     if (!studentId) return;
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) setChecked(JSON.parse(raw));
-    } catch {
-      /* ignore */
-    }
     // 加载计划；没有则自动生成（避免学员感觉「没有学习计划」）
     (async () => {
       try {
@@ -72,12 +67,32 @@ export function PlanPanel({ studentId }: { studentId: string }) {
         setIsLoading(false);
       }
     })();
-  }, [studentId, storageKey]);
+  }, [studentId]);
 
   useEffect(() => {
-    if (!storageKey) return;
-    localStorage.setItem(storageKey, JSON.stringify(checked));
-  }, [checked, storageKey]);
+    if (!studentId || !plan || !progressFingerprint) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const params = new URLSearchParams({
+          studentId,
+          fingerprint: progressFingerprint,
+        });
+        const res = await fetch(`/api/me/daily-progress?${params.toString()}`);
+        const data = await res.json();
+        if (!cancelled && res.ok) {
+          const next: Record<string, boolean> = {};
+          for (const id of data.progress?.done || []) next[id] = true;
+          setChecked(next);
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [studentId, progressFingerprint]);
 
   const generate = async (useLlm = false) => {
     setIsLoading(true);
@@ -102,8 +117,23 @@ export function PlanPanel({ studentId }: { studentId: string }) {
     }
   };
 
-  const toggle = (id: string) => {
-    setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggle = async (id: string) => {
+    const nextDone = !checked[id];
+    setChecked((prev) => ({ ...prev, [id]: nextDone }));
+    try {
+      await fetch('/api/me/daily-progress', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId,
+          taskId: id,
+          done: nextDone,
+          fingerprint: progressFingerprint,
+        }),
+      });
+    } catch {
+      setError('个人完成态暂未同步，稍后会重试');
+    }
   };
 
   const persistTasks = async (dailyTasks: Task[]) => {
@@ -255,7 +285,7 @@ export function PlanPanel({ studentId }: { studentId: string }) {
                     type="checkbox"
                     className="mt-1"
                     checked={!!checked[t.id]}
-                    onChange={() => toggle(t.id)}
+                    onChange={() => void toggle(t.id)}
                   />
                   <div className="flex-1 text-sm">
                     <p className={checked[t.id] ? 'line-through' : ''}>{t.task}</p>

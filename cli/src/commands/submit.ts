@@ -6,8 +6,8 @@ import * as path from 'path';
 import { isFakeStudentId, loadConfig } from '../lib/config';
 
 export const submitCommand = new Command('submit')
-  .description('提交 lab 代码到网页同一后端（静态分析反馈）')
-  .option('-l, --lab <lab>', '实验室名称', 'lab1-batch')
+  .description('提交关卡代码（OJ：仅 AC 过关；Phase A 为静态分析 STATIC）')
+  .option('-l, --lab <lab>', '关卡 gateId（如 lab1-batch）', 'lab1-batch')
   .option('-f, --file <file>', '代码文件路径')
   .option('-s, --student <id>', '覆盖配置中的学员 ID')
   .option('-u, --url <url>', '覆盖服务器地址')
@@ -60,6 +60,7 @@ export const submitCommand = new Command('submit')
         body: JSON.stringify({
           studentId,
           labName: options.lab,
+          gateId: options.lab,
           code,
           language: 'rust',
         }),
@@ -68,22 +69,31 @@ export const submitCommand = new Command('submit')
       const result = await response.json();
 
       if (response.ok) {
-        spinner.succeed(chalk.green('代码提交成功！'));
+        const verdict = result.oj?.verdict || result.submission?.verdict || '?';
+        const passed = result.oj?.gatePassed || result.submission?.isPassed;
+        spinner.succeed(
+          chalk.green(
+            passed
+              ? '提交成功且关卡 AC 过关！'
+              : `提交成功（verdict=${verdict}，未过关）`
+          )
+        );
         console.log('');
         console.log(chalk.cyan('提交信息:'));
         console.log(`  学员: ${studentId}`);
-        console.log(`  实验室: ${options.lab}`);
+        console.log(`  关卡: ${options.lab}`);
         console.log(`  代码长度: ${code.length} 字符`);
+        console.log(`  verdict: ${verdict}`);
         console.log(`  提交时间: ${new Date().toLocaleString()}`);
+        if (result.message) {
+          console.log(chalk.dim(`  ${result.message}`));
+        }
 
-        if (result.feedback) {
+        const fb = result.submission?.feedback || result.feedback;
+        if (fb) {
           console.log('');
           console.log(chalk.yellow('反馈:'));
-          console.log(
-            typeof result.feedback === 'string'
-              ? result.feedback
-              : JSON.stringify(result.feedback, null, 2)
-          );
+          console.log(typeof fb === 'string' ? fb : JSON.stringify(fb, null, 2));
         }
       } else {
         spinner.fail(chalk.red(`提交失败: ${result.error || response.status}`));

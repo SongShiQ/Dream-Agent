@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { generateQuestion } from '@/lib/agents/examiner';
+import {
+  generateQuestion,
+  normalizeGeneratedQuestion,
+} from '@/lib/agents/examiner';
 import {
   getQuestionById,
   pickQuestion,
@@ -18,6 +21,7 @@ import {
 import { adjustDifficulty } from '@/lib/adaptive/difficulty';
 import { gradeAnswer, parseJsonArray } from '@/lib/exam/grade';
 import { evaluateStageUpgrade } from '@/lib/adaptive/stage';
+import { authError, getCurrentStudent } from '@/lib/auth/session';
 
 function serializeQuestion(
   q: {
@@ -48,12 +52,13 @@ function serializeQuestion(
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const studentId = searchParams.get('studentId');
+    const { student } = await getCurrentStudent(req, searchParams.get('studentId'));
     const action = searchParams.get('action') || 'wrongbook';
 
-    if (!studentId) {
-      return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
+    if (!student) {
+      return authError();
     }
+    const studentId = student.id;
 
     if (action === 'wrongbook') {
       const items = await getWrongQuestions(studentId, 40);
@@ -61,10 +66,6 @@ export async function GET(req: Request) {
     }
 
     if (action === 'stage') {
-      const student = await getStudentById(studentId);
-      if (!student) {
-        return NextResponse.json({ error: 'Student not found' }, { status: 404 });
-      }
       const stats = await getStudentStats(studentId);
       let weakCount = 0;
       try {
@@ -117,7 +118,6 @@ export async function POST(req: Request) {
     }
 
     const {
-      studentId,
       action,
       questionId,
       answer,
@@ -128,16 +128,13 @@ export async function POST(req: Request) {
       stage,
     } = body;
 
-    if (!studentId) {
-      return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
+    const { student } = await getCurrentStudent(req, body.studentId);
+    if (!student) {
+      return authError();
     }
+    const studentId = student.id;
 
     if (action === 'generate') {
-      const student = await getStudentById(studentId);
-      if (!student) {
-        return NextResponse.json({ error: 'Student not found' }, { status: 404 });
-      }
-
       const stats = await getStudentStats(studentId);
       const difficulty =
         typeof currentDifficulty === 'number' ? currentDifficulty : stats.currentDifficulty;
@@ -147,13 +144,24 @@ export async function POST(req: Request) {
       const allowLlm = !!body.allowLlm || forceLlm;
 
       if (!forceLlm) {
-        const bankQ = await pickQuestion({
-          difficulty,
+        // 正确率高时抬高经典题难度下限，避免一直抽「太简单」
+      const minDifficulty =
+        stats.recentAccuracy >= 0.75
+          ? 55
+          : stats.recentAccuracy >= 0.55
+            ? 45
+            : 32;
+      const hardBias = stats.recentAccuracy >= 0.7 ? 0.55 : 0.35;
+
+      const bankQ = await pickQuestion({
+          difficulty: Math.max(difficulty, minDifficulty - 5),
           weakPoints,
           excludeIds,
           focusWeak: !!focusWeak || weakPoints.length > 0,
           knowledgePoint,
           stage: stage || student.currentStage || undefined,
+          minDifficulty,
+          hardBias,
         });
 
         if (bankQ) {
@@ -190,56 +198,60 @@ export async function POST(req: Request) {
           : weakPoints.length
             ? weakPoints
             : ['process', 'memory', 'rust'];
-        const generated = await generateQuestion({
+        const rawGen = await generateQuestion({
           studentId,
           currentDifficulty: difficulty,
           weakPoints: kpsForLlm,
-          stage: stage || student.currentStage || 'basic',
+          stage: stage || student.currentStage || 'pre_study_theory',
+          preferType: 'choice',
         });
+        const generated = normalizeGeneratedQuestion(rawGen);
 
-        // 规范化选择题答案为 A-D，避免 AI 返回全文导致判分失败
+        // 二次保证：至少 4 个选项，否则补齐，避免前端无 radio
         let options = generated.options || [];
-        let answer = String(generated.answer || '').trim();
+        let answer = generated.answer;
         if (generated.type === 'choice') {
           const letters = ['A', 'B', 'C', 'D'];
-          options = options.slice(0, 4).map((o, i) => {
-            const t = String(o).trim();
-            if (/^[A-Da-d][\.、\)]/.test(t) || /^[A-Da-d]\s/.test(t)) return t;
-            return `${letters[i]}. ${t}`;
-          });
-          const ansLetter = answer.charAt(0).toUpperCase();
-          if (!/^[A-D]$/.test(ansLetter)) {
-            const hit = options.findIndex(
-              (o) =>
-                o.includes(answer) ||
-                answer.includes(o.replace(/^[A-D][\.、\)\s]+/i, ''))
-            );
-            answer = hit >= 0 ? letters[hit] : 'A';
-          } else {
-            answer = ansLetter;
+          while (options.length < 4) {
+            options.push(`${letters[options.length]}. （选项缺失，请重出）`);
           }
+          options = options.slice(0, 4);
+          if (!/^[A-D]$/.test(answer)) answer = 'A';
         }
 
         const saved = await createQuestion({
-          type: generated.type === 'choice' || generated.type === 'fill' ? generated.type : 'choice',
+          type: generated.type === 'fill' ? 'fill' : 'choice',
           difficulty: generated.difficulty ?? difficulty,
           knowledgePoints: Array.from(
-            new Set([...(generated.knowledgePoints || []), 'ai_generated', ...kpsForLlm.slice(0, 3)])
+            new Set([
+              ...(generated.knowledgePoints || []),
+              'ai_generated',
+              ...kpsForLlm.slice(0, 3),
+            ])
           ),
           content: generated.content,
           options,
           answer,
           explanation: generated.explanation || '',
-          stage: stage || student.currentStage || 'basic',
+          stage: stage || student.currentStage || 'pre_study_theory',
         });
 
+        const serialized = serializeQuestion(saved, 'llm');
+        // 防御 options 解析失败
+        if (
+          serialized.type === 'choice' &&
+          (!Array.isArray(serialized.options) || serialized.options.length === 0)
+        ) {
+          serialized.options = options;
+        }
+
         return NextResponse.json({
-          question: serializeQuestion(saved, 'llm'),
+          question: serialized,
           difficulty,
           targeted: !!knowledgePoint || weakPoints.length > 0,
           weakPoints,
           sourceMode: 'llm',
-          hint: '本题由 AI 生成（已标 ai_generated）。适合加练；正式课标仍以导入题库为准',
+          hint: 'AI 加练题（与经典题库并行）。正式课标仍以导入题库为准',
         });
       } catch (llmError) {
         console.error('LLM generate failed:', llmError);
@@ -257,11 +269,6 @@ export async function POST(req: Request) {
     if (action === 'submit') {
       if (!questionId || answer === undefined) {
         return NextResponse.json({ error: 'questionId and answer required' }, { status: 400 });
-      }
-
-      const student = await getStudentById(studentId);
-      if (!student) {
-        return NextResponse.json({ error: 'Student not found' }, { status: 404 });
       }
 
       const question = await getQuestionById(questionId);
@@ -326,10 +333,6 @@ export async function POST(req: Request) {
     }
 
     if (action === 'promote') {
-      const student = await getStudentById(studentId);
-      if (!student) {
-        return NextResponse.json({ error: 'Student not found' }, { status: 404 });
-      }
       const stats = await getStudentStats(studentId);
       let weakCount = 0;
       try {

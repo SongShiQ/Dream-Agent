@@ -5,43 +5,44 @@ import prisma from '@/lib/db/index';
 import { getStudentById } from '@/lib/db/student';
 import { scoreDiagnostic, stripAnswers } from '@/lib/assess/diagnostic';
 import { assessStudent } from '@/lib/agents/assessor';
+import { pickDiagnosticSet } from '@/lib/db/question';
+import { authError, getCurrentStudent } from '@/lib/auth/session';
+import { gradeAnswer, parseJsonArray } from '@/lib/exam/grade';
 
-const DIAGNOSTIC_SIZE = 5;
+const DIAGNOSTIC_SIZE = 12;
 
-/** GET ?studentId= — 下发摸底卷（不含答案） */
+/**
+ * GET — 给当前学员下发 12 题摸底卷（不含答案）
+ * 策略：固定题库分层抽题（易/中/难）+ 排除近期做过 → 可复现、有区分度、少重复
+ * 不在此用 AI 出卷（评估要稳定可比；AI 适合练习加练）
+ */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const studentId = searchParams.get('studentId');
-    if (!studentId) {
-      return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
-    }
+    const requestedStudentId = searchParams.get('studentId');
+    const { student } = await getCurrentStudent(req, requestedStudentId);
 
-    const student = await getStudentById(studentId);
     if (!student) {
-      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+      return authError();
     }
+    const studentId = student.id;
 
     const count = await prisma.question.count();
     if (count === 0) {
       return NextResponse.json(
-        { error: '题库为空，请先运行 npx tsx scripts/import-questions.ts' },
+        { error: '题库为空，请先运行 npm run content:import' },
         { status: 503 }
       );
     }
 
-    // 随机抽 N 道（SQLite：多取再 shuffle）
-    const pool = await prisma.question.findMany({
-      take: Math.min(50, Math.max(DIAGNOSTIC_SIZE, count)),
-      orderBy: { difficulty: 'asc' },
-    });
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, Math.min(DIAGNOSTIC_SIZE, shuffled.length));
+    const selected = await pickDiagnosticSet(studentId, DIAGNOSTIC_SIZE);
 
     return NextResponse.json({
       questions: selected.map(stripAnswers),
       total: selected.length,
       studentId,
+      policy: 'bank_stratified',
+      hint: '水平评估使用经典题库 12 题三维抽题（OS/Rust/编码），只推荐起点；AI 出题请在练习模式使用',
     });
   } catch (error) {
     console.error('Assess GET error:', error);
@@ -64,15 +65,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: '请求体无效' }, { status: 400 });
     }
 
-    const studentId = body.studentId;
-    if (!studentId) {
-      return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
-    }
+    const { student } = await getCurrentStudent(req, body.studentId);
 
-    const student = await getStudentById(studentId);
     if (!student) {
-      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+      return authError();
     }
+    const studentId = student.id;
 
     // 诊断卷提交
     if (
@@ -102,11 +100,26 @@ export async function POST(req: Request) {
         },
       });
 
+      await prisma.answerRecord.createMany({
+        data: ans.map((a) => {
+          const q = questions.find((item) => item.id === a.questionId);
+          const isCorrect = q
+            ? gradeAnswer(q.type, q.answer, a.answer, parseJsonArray(q.options))
+            : false;
+          return {
+            studentId,
+            questionId: a.questionId,
+            answer: a.answer,
+            isCorrect,
+            feedbackMode: student.feedbackMode,
+          };
+        }),
+      });
+
       await prisma.student.update({
         where: { id: studentId },
         data: {
           weakPoints: JSON.stringify(result.weakPoints),
-          currentStage: result.stage,
         },
       });
 
@@ -154,7 +167,6 @@ export async function POST(req: Request) {
         where: { id: studentId },
         data: {
           weakPoints: JSON.stringify(result.weakPoints),
-          currentStage: stage,
         },
       });
 

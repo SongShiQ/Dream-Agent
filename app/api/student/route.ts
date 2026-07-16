@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/index';
 import { getOrCreateStudent, getStudentStats } from '@/lib/db/student';
+import { attachStudentSession, getCurrentStudent } from '@/lib/auth/session';
 
 // 创建 / upsert 学员（登录）
 export async function POST(req: Request) {
@@ -22,13 +23,13 @@ export async function POST(req: Request) {
     const { student, created } = await getOrCreateStudent(name, body.email);
     const stats = await getStudentStats(student.id);
 
-    return NextResponse.json({
+    return attachStudentSession(NextResponse.json({
       student: {
         ...student,
         stats,
       },
       created,
-    });
+    }), student.id);
   } catch (error) {
     console.error('Create student error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -41,13 +42,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     const name = searchParams.get('name');
+    const { student: current } = await getCurrentStudent(req, id);
 
-    if (!id && !name) {
-      return NextResponse.json({ error: 'ID or name is required' }, { status: 400 });
+    if (!current) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const student = await prisma.student.findFirst({
-      where: id ? { id } : { name: name! },
+      where: { id: current.id },
       include: {
         assessments: {
           orderBy: { assessedAt: 'desc' },
@@ -69,12 +71,12 @@ export async function GET(req: Request) {
 
     const stats = await getStudentStats(student.id);
 
-    return NextResponse.json({
+    return attachStudentSession(NextResponse.json({
       student: {
         ...student,
         stats,
       },
-    });
+    }), student.id);
   } catch (error) {
     console.error('Get student error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -85,13 +87,14 @@ export async function GET(req: Request) {
 export async function PUT(req: Request) {
   try {
     const { id, name, email, currentStage, weakPoints, feedbackMode } = await req.json();
+    const { student: current } = await getCurrentStudent(req, id);
 
-    if (!id) {
-      return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+    if (!current) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const student = await prisma.student.update({
-      where: { id },
+      where: { id: current.id },
       data: {
         ...(name && { name }),
         ...(email && { email }),

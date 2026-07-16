@@ -3,16 +3,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StudentHomePanel } from '@/components/StudentHomePanel';
 import { useApp } from '@/lib/context/app-context';
-import { STAGE_LABELS } from '@/lib/adaptive/stage';
-import { buildPathNodes, buildTodaySteps, type TodayStep } from '@/lib/learning/path';
+import { STAGE_CHAPTERS, STAGE_LABELS } from '@/lib/adaptive/stage';
 import {
-  loadTodayProgress,
-  markStepDone,
+  buildPathNodes,
+  buildTodaySteps,
+  type PathNode,
+  type TodayStep,
+} from '@/lib/learning/path';
+import {
+  fetchTodayProgress,
+  setTodayTaskDone,
   stepsFingerprint,
 } from '@/lib/learning/today-progress';
 
 type NavMode = 'assess' | 'quiz' | 'practice' | 'plan' | 'chat' | 'wrongbook' | 'lab';
+
+type DashboardLite = {
+  gates?: {
+    mastered: boolean;
+    stageIds?: string[];
+  }[];
+};
 
 interface LearningMapPanelProps {
   onNavigate: (mode: NavMode) => void;
@@ -23,9 +36,14 @@ export function LearningMapPanel({ onNavigate }: LearningMapPanelProps) {
   const [hasPlan, setHasPlan] = useState(false);
   const [autoPlanMsg, setAutoPlanMsg] = useState<string | null>(null);
   const [doneIds, setDoneIds] = useState<string[]>([]);
+  const [dashboard, setDashboard] = useState<DashboardLite | null>(null);
 
   const stage = user?.currentStage || 'pre_study_theory';
-  const nodes = buildPathNodes(stage);
+  const masteredStages =
+    dashboard?.gates
+      ?.filter((g) => g.mastered)
+      .flatMap((g) => g.stageIds || []) || [];
+  const nodes = buildPathNodes(stage, { masteredStages });
   const steps = buildTodaySteps({
     totalQuestions: user?.totalQuestions ?? 0,
     weakPoints: user?.weakPoints ?? [],
@@ -86,19 +104,55 @@ export function LearningMapPanel({ onNavigate }: LearningMapPanelProps) {
     };
   }, [user?.studentId]);
 
+  // 读取服务端证据聚合：地图节点只根据 mastered 证据显示已达标
+  useEffect(() => {
+    if (!user?.studentId) {
+      setDashboard(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const params = new URLSearchParams({ studentId: user.studentId });
+        const res = await fetch(`/api/me/dashboard?${params.toString()}`);
+        const data = await res.json();
+        if (!cancelled && res.ok) setDashboard(data.dashboard);
+      } catch {
+        if (!cancelled) setDashboard(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.studentId]);
+
   // 加载今日三步完成态
   useEffect(() => {
     if (!user?.studentId) {
       setDoneIds([]);
       return;
     }
-    const p = loadTodayProgress(user.studentId, fingerprint);
-    setDoneIds(p.done);
+    let cancelled = false;
+    (async () => {
+      const p = await fetchTodayProgress({
+        studentId: user.studentId,
+        fingerprint,
+      });
+      if (!cancelled) setDoneIds(p.done);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [user?.studentId, fingerprint]);
 
-  const handleStep = (step: TodayStep) => {
+  const handleStep = async (step: TodayStep) => {
     if (user?.studentId) {
-      const next = markStepDone(user.studentId, fingerprint, step.id);
+      const next = await setTodayTaskDone({
+        studentId: user.studentId,
+        fingerprint,
+        taskId: step.id,
+        done: true,
+      });
       setDoneIds(next.done);
     }
     onNavigate(step.mode);
@@ -131,17 +185,21 @@ export function LearningMapPanel({ onNavigate }: LearningMapPanelProps) {
         )}
       </div>
 
+      {user?.studentId && (
+        <StudentHomePanel studentId={user.studentId} onNavigate={onNavigate} />
+      )}
+
       {/* 今日三步 — 学员最需要 */}
       <Card className="border-primary/30 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center justify-between gap-2">
             <span>今日三步</span>
             <span className="text-xs font-normal text-muted-foreground">
-              {doneCount}/{steps.length} 已点开
+              {doneCount}/{steps.length} personal_done
             </span>
           </CardTitle>
           <p className="text-xs text-muted-foreground font-normal">
-            按顺序做；点开会记入今日进度（本机按日重置）。做完可再点「完成」打勾。
+            按顺序做；这里记录的是个人完成态，不代表课程达标或 OJ 通过。
           </p>
           {allDone && (
             <p className="text-xs text-green-700 mt-1">今日三步都走过了，不错！可继续刷题或推进 lab。</p>
@@ -163,7 +221,7 @@ export function LearningMapPanel({ onNavigate }: LearningMapPanelProps) {
               >
                 <button
                   type="button"
-                  onClick={() => handleStep(step)}
+                  onClick={() => void handleStep(step)}
                   className={`w-full text-left p-3 rounded-xl ${
                     done ? 'hover:bg-green-50' : 'hover:bg-muted/60'
                   }`}
@@ -196,8 +254,13 @@ export function LearningMapPanel({ onNavigate }: LearningMapPanelProps) {
                     <button
                       type="button"
                       className="text-[11px] text-muted-foreground underline hover:text-foreground"
-                      onClick={() => {
-                        const next = markStepDone(user.studentId, fingerprint, step.id);
+                      onClick={async () => {
+                        const next = await setTodayTaskDone({
+                          studentId: user.studentId,
+                          fingerprint,
+                          taskId: step.id,
+                          done: true,
+                        });
                         setDoneIds(next.done);
                       }}
                     >
@@ -211,110 +274,12 @@ export function LearningMapPanel({ onNavigate }: LearningMapPanelProps) {
         </CardContent>
       </Card>
 
-      {/* 总体路径 — 类多邻国节点，训练营语义 */}
-      <div>
-        <h3 className="text-sm font-semibold mb-1">总体学习路径</h3>
-        <p className="text-xs text-muted-foreground mb-4">
-          节点是 OpenCamp 阶段与 lab。「更早阶段」仅表示你当前阶段在其后，不代表实验已完成。
-        </p>
-
-        <div className="relative pl-4">
-          {/* 竖线 */}
-          <div className="absolute left-[1.65rem] top-3 bottom-3 w-0.5 bg-border" />
-
-          <ul className="space-y-0">
-            {nodes.map((node) => (
-              <li key={node.id} className="relative flex gap-4 pb-6 last:pb-0">
-                {/* 节点圆点 */}
-                <div
-                  className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold ${
-                    node.status === 'done'
-                      ? 'border-green-600 bg-green-100 text-green-800'
-                      : node.status === 'current'
-                        ? 'border-primary bg-primary text-primary-foreground ring-4 ring-primary/20'
-                        : 'border-muted-foreground/30 bg-background text-muted-foreground'
-                  }`}
-                >
-                  {node.status === 'done' ? '✓' : node.index + 1}
-                </div>
-
-                <div
-                  className={`flex-1 rounded-xl border p-3 ${
-                    node.status === 'current'
-                      ? 'border-primary bg-primary/5'
-                      : node.status === 'locked'
-                        ? 'opacity-55'
-                        : 'bg-card'
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium text-sm">{node.label}</p>
-                    {node.status === 'current' && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
-                        你在这里
-                      </span>
-                    )}
-                    {node.status === 'done' && (
-                      <span className="text-xs text-green-700" title="相对当前阶段更靠前，不代表 lab 已交">
-                        更早阶段
-                      </span>
-                    )}
-                    {node.status === 'locked' && (
-                      <span className="text-xs text-muted-foreground">后续阶段</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">{node.focus}</p>
-                  {node.labs.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {node.labs.map((lab) => (
-                        <code
-                          key={lab}
-                          className="text-[10px] bg-muted px-1.5 py-0.5 rounded"
-                        >
-                          {lab}
-                        </code>
-                      ))}
-                    </div>
-                  )}
-                  {node.status === 'current' && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <Button
-                        size="sm"
-                        onClick={() => onNavigate('practice')}
-                      >
-                        {(user?.weakPoints?.length ?? 0) > 0 ? '薄弱过关 3 题' : '练本阶段'}
-                      </Button>
-                      {node.labs[0] && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onNavigate('lab')}
-                        >
-                          实验 {node.labs[0]}
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onNavigate('plan')}
-                      >
-                        今日计划
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onNavigate('chat')}
-                      >
-                        提问
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      {/* 大章横向导航 + 本章小节列表 */}
+      <ChapterPathSection
+        nodes={nodes}
+        weakCount={user?.weakPoints?.length ?? 0}
+        onNavigate={onNavigate}
+      />
 
       {/* 快捷 */}
       <Card>
@@ -346,6 +311,177 @@ export function LearningMapPanel({ onNavigate }: LearningMapPanelProps) {
           >
             rCore 教程仓库
           </a>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/** 大章横栏导航 + 下方本章小节 */
+function ChapterPathSection({
+  nodes,
+  weakCount,
+  onNavigate,
+}: {
+  nodes: PathNode[];
+  weakCount: number;
+  onNavigate: (mode: NavMode) => void;
+}) {
+  const current = nodes.find((n) => n.status === 'current') || nodes[0];
+  const chapterList = STAGE_CHAPTERS.map((ch) => ({
+    ...ch,
+    nodes: nodes.filter((n) => ch.stages.includes(n.stage)),
+  })).filter((ch) => ch.nodes.length > 0);
+
+  const currentChapterId =
+    chapterList.find((ch) => ch.nodes.some((n) => n.status === 'current'))?.id ||
+    chapterList[0]?.id;
+
+  const [activeChapterId, setActiveChapterId] = useState(currentChapterId);
+
+  useEffect(() => {
+    setActiveChapterId(currentChapterId);
+  }, [currentChapterId]);
+
+  const active =
+    chapterList.find((c) => c.id === activeChapterId) || chapterList[0];
+  const chapterNodes = active?.nodes || [];
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-semibold mb-1">学习路径</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          先选大章，再看本章小节。箭头表示推荐顺序，勿跳章硬闯。
+        </p>
+
+        {/* 大章横向导航 */}
+        <div className="flex items-stretch gap-1 overflow-x-auto pb-2">
+          {chapterList.map((ch, i) => {
+            const hasCurrent = ch.nodes.some((n) => n.status === 'current');
+            const allDone = ch.nodes.every((n) => n.status === 'done');
+            const selected = ch.id === active?.id;
+            return (
+              <div key={ch.id} className="flex items-center shrink-0">
+                {i > 0 && (
+                  <span
+                    className="px-1.5 text-muted-foreground text-sm select-none"
+                    aria-hidden
+                  >
+                    →
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setActiveChapterId(ch.id)}
+                  className={`px-3 py-2.5 rounded-xl border text-left min-w-[7.5rem] transition-colors ${
+                    selected
+                      ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
+                      : hasCurrent
+                        ? 'border-primary/40 bg-primary/5'
+                        : 'border-border hover:bg-muted/50'
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{ch.label}</span>
+                  <span className="block text-[10px] text-muted-foreground mt-0.5">
+                    {allDone
+                      ? '本章已达标'
+                      : hasCurrent
+                        ? '进行中'
+                        : `${ch.nodes.length} 个小节`}
+                  </span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 本章内容 */}
+      <Card className="border-primary/20">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex flex-wrap items-center justify-between gap-2">
+            <span>{active?.label || '本章'} · 小节</span>
+            {current && (
+              <span className="text-xs font-normal text-muted-foreground">
+                全局当前位置：{current.label}
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {chapterNodes.map((node) => (
+            <div
+              key={node.id}
+              className={`rounded-xl border p-3 ${
+                node.status === 'current'
+                  ? 'border-primary bg-primary/5'
+                  : node.status === 'locked'
+                    ? 'opacity-60'
+                    : 'bg-card'
+              }`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold border-2 ${
+                      node.status === 'done'
+                        ? 'border-green-600 bg-green-100 text-green-800'
+                        : node.status === 'current'
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-muted-foreground/30 text-muted-foreground'
+                    }`}
+                  >
+                    {node.status === 'done' ? '✓' : node.index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm">{node.label}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {node.focus}
+                    </p>
+                  </div>
+                </div>
+                {node.status === 'current' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground shrink-0">
+                    你在这里
+                  </span>
+                )}
+                {node.status === 'done' && (
+                  <span className="text-xs text-green-700 shrink-0">已达标</span>
+                )}
+                {node.status === 'locked' && (
+                  <span className="text-xs text-muted-foreground shrink-0">未解锁</span>
+                )}
+              </div>
+              {node.labs.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2 pl-10">
+                  {node.labs.map((lab) => (
+                    <code key={lab} className="text-[10px] bg-muted px-1.5 py-0.5 rounded">
+                      {lab}
+                    </code>
+                  ))}
+                </div>
+              )}
+              {node.status === 'current' && (
+                <div className="flex flex-wrap gap-2 mt-3 pl-10">
+                  <Button size="sm" onClick={() => onNavigate('practice')}>
+                    {weakCount > 0 ? '薄弱过关 3 题' : '练本小节'}
+                  </Button>
+                  {node.labs[0] && (
+                    <Button size="sm" variant="outline" onClick={() => onNavigate('lab')}>
+                      实验 {node.labs[0]}
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => onNavigate('plan')}>
+                    今日计划
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => onNavigate('chat')}>
+                    提问
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>

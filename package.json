@@ -15,7 +15,13 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "content:import": "tsx scripts/import-questions.ts",
-    "content:audit": "tsx scripts/audit-questions.ts"
+    "content:audit": "tsx scripts/audit-questions.ts",
+    "judge:unit": "tsx scripts/unit-judge-worker.ts --once",
+    "judge:smoke": "tsx scripts/smoke-unit-oj.ts",
+    "judge:docker-smoke": "tsx scripts/smoke-docker-unit-oj.ts",
+    "ops:m5-readiness": "tsx scripts/audit-m5-readiness.ts",
+    "ops:release-archive": "tsx scripts/archive-release-snapshot.ts",
+    "ops:release-rehearsal": "tsx scripts/rehearse-release-snapshot.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.30",

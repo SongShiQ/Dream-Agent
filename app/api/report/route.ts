@@ -5,16 +5,18 @@ import prisma from '@/lib/db/index';
 import { getStudentStats } from '@/lib/db/student';
 import { STAGE_LABELS, STAGE_LABS } from '@/lib/adaptive/stage';
 import { evaluateStageUpgrade } from '@/lib/adaptive/stage';
+import { authError, getCurrentStudent } from '@/lib/auth/session';
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const studentId = searchParams.get('studentId');
+    const { student: current } = await getCurrentStudent(req, searchParams.get('studentId'));
     const format = searchParams.get('format') || 'json'; // json | md
 
-    if (!studentId) {
-      return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
+    if (!current) {
+      return authError();
     }
+    const studentId = current.id;
 
     const student = await prisma.student.findUnique({
       where: { id: studentId },

@@ -121,6 +121,8 @@ export function ExamPanel({
   const [trailIndex, setTrailIndex] = useState(-1);
   const [favorites, setFavorites] = useState<Question[]>([]);
   const [showFavPanel, setShowFavPanel] = useState(false);
+  /** 经典题库 | AI 出题 — 两条并行线，不是备选 */
+  const [drillSource, setDrillSource] = useState<'bank' | 'ai'>('bank');
 
   // 从 URL / 父组件 focus 变化时重置
   useEffect(() => {
@@ -278,8 +280,9 @@ export function ExamPanel({
       setError('未登录或学员 ID 无效');
       return;
     }
+    const useAi = opts?.forceLlm ?? drillSource === 'ai';
     // 若在历史中间点「下一题」，先前进到轨迹末尾再出新题
-    if (trailIndex >= 0 && trailIndex < trail.length - 1 && !opts?.forceLlm) {
+    if (trailIndex >= 0 && trailIndex < trail.length - 1 && !useAi) {
       const snap = snapshotCurrent();
       const nextIdx = trailIndex + 1;
       setTrail((prev) => {
@@ -308,8 +311,8 @@ export function ExamPanel({
           focusWeak: focusWeak || (user?.weakPoints?.length ?? 0) > 0,
           knowledgePoint: knowledgePoint || undefined,
           stage: user?.currentStage,
-          forceLlm: !!opts?.forceLlm,
-          allowLlm: !!opts?.forceLlm,
+          forceLlm: useAi,
+          allowLlm: useAi,
         }),
       });
       const data = await res.json();
@@ -319,10 +322,34 @@ export function ExamPanel({
       }
 
       const q = data.question as Question;
+      let options = Array.isArray(q.options) ? q.options.map(String) : [];
+      // 兼容 options 被二次 JSON 字符串化或为空
+      if (options.length === 1 && typeof options[0] === 'string' && options[0].startsWith('[')) {
+        try {
+          const parsed = JSON.parse(options[0]);
+          if (Array.isArray(parsed)) options = parsed.map(String);
+        } catch {
+          /* ignore */
+        }
+      }
+      // AI 题若缺字母前缀，前端补齐，保证 radio 可点
+      if ((q.type === 'choice' || options.length >= 2) && options.length > 0) {
+        const letters = ['A', 'B', 'C', 'D'];
+        options = options.slice(0, 4).map((o, i) => {
+          const t = String(o).trim();
+          if (/^[A-Da-d][\.、\)]/.test(t)) return t;
+          return `${letters[i]}. ${t}`;
+        });
+        while (options.length < 4 && useAi) {
+          options.push(`${letters[options.length]}. （请重新 AI 出题）`);
+        }
+      }
       const normalized: Question = {
         ...q,
-        options: Array.isArray(q.options) ? q.options : [],
+        type: options.length >= 2 ? 'choice' : q.type || 'fill',
+        options,
         knowledgePoints: Array.isArray(q.knowledgePoints) ? q.knowledgePoints : [],
+        source: q.source || (useAi ? 'llm' : 'bank'),
       };
 
       // 把当前题写入轨迹再推进
@@ -617,17 +644,6 @@ export function ExamPanel({
           >
             收藏夹 ({favorites.length})
           </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="h-9"
-            disabled={isLoading || !studentId}
-            onClick={() => void generateNewQuestion({ forceLlm: true })}
-            title="跳过题库，用大模型出一题（需 API Key）"
-          >
-            AI 出一题
-          </Button>
           {onExit && (
             <Button
               type="button"
@@ -653,6 +669,61 @@ export function ExamPanel({
           )}
         </div>
       </div>
+
+      {/* 经典题库 | AI 出题 并行切换 */}
+      <div className="flex flex-wrap items-center gap-2 p-1 rounded-xl border bg-muted/30">
+        <button
+          type="button"
+          className={`flex-1 min-w-[8rem] px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            drillSource === 'bank'
+              ? 'bg-background shadow border border-primary/30 text-foreground'
+              : 'text-muted-foreground hover:bg-background/60'
+          }`}
+          onClick={() => {
+            if (drillSource === 'bank') return;
+            setDrillSource('bank');
+            setQuestion(null);
+            setShowResult(false);
+            setTrail([]);
+            setTrailIndex(-1);
+            setQuestionNumber(0);
+            setError(null);
+          }}
+        >
+          经典题库
+          <span className="block text-[10px] font-normal opacity-70 mt-0.5">
+            导入母题 · 按进度/薄弱点抽
+          </span>
+        </button>
+        <button
+          type="button"
+          className={`flex-1 min-w-[8rem] px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            drillSource === 'ai'
+              ? 'bg-violet-100 shadow border border-violet-300 text-violet-950'
+              : 'text-muted-foreground hover:bg-background/60'
+          }`}
+          onClick={() => {
+            if (drillSource === 'ai') return;
+            setDrillSource('ai');
+            setQuestion(null);
+            setShowResult(false);
+            setTrail([]);
+            setTrailIndex(-1);
+            setQuestionNumber(0);
+            setError(null);
+          }}
+        >
+          AI 出题
+          <span className="block text-[10px] font-normal opacity-70 mt-0.5">
+            变式加练 · 需 API Key
+          </span>
+        </button>
+      </div>
+      {drillSource === 'ai' && (
+        <p className="text-[11px] text-violet-800 bg-violet-50 border border-violet-100 rounded-lg px-3 py-1.5">
+          当前为 <strong>AI 出题线</strong>（与经典题库并行）。生成题带选项可作答；质量供加练，正式课标仍以经典题库为准。
+        </p>
+      )}
 
       {showFavPanel && (
         <Card>
@@ -875,36 +946,43 @@ export function ExamPanel({
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm whitespace-pre-wrap">{question.content}</p>
+            <div className="text-sm">
+              <MarkdownBody content={question.content || ''} />
+            </div>
 
-            {question.type === 'choice' && question.options.length > 0 && (
+            {(question.type === 'choice' ||
+              (Array.isArray(question.options) && question.options.length >= 2)) &&
+            question.options.length > 0 ? (
               <RadioGroup
                 value={selectedAnswer}
                 onValueChange={setSelectedAnswer}
                 disabled={showResult}
               >
                 {question.options.map((opt, i) => {
-                  const letter = opt.charAt(0).toUpperCase();
+                  const letter = String(opt).charAt(0).toUpperCase();
+                  const valueLetter = /^[A-D]$/.test(letter) ? letter : String.fromCharCode(65 + i);
                   const correctLetter = String(question.answer || '')
                     .trim()
                     .charAt(0)
                     .toUpperCase();
-                  const isCorrectOpt = showResult && letter === correctLetter;
+                  const isCorrectOpt = showResult && valueLetter === correctLetter;
                   const isWrongPick =
-                    showResult && selectedAnswer.toUpperCase() === letter && letter !== correctLetter;
+                    showResult &&
+                    selectedAnswer.toUpperCase() === valueLetter &&
+                    valueLetter !== correctLetter;
                   return (
                     <div
                       key={i}
-                      className={`flex items-center space-x-2 p-2 rounded border ${
+                      className={`flex items-center space-x-2 p-3 rounded-lg border ${
                         isCorrectOpt
                           ? 'bg-green-100 border-green-400'
                           : isWrongPick
                             ? 'bg-red-100 border-red-300'
-                            : 'border-transparent hover:bg-muted'
+                            : 'border-border hover:bg-muted'
                       }`}
                     >
-                      <RadioGroupItem value={letter} id={`opt-${i}`} />
-                      <Label htmlFor={`opt-${i}`} className="flex-1 cursor-pointer">
+                      <RadioGroupItem value={valueLetter} id={`opt-${i}`} />
+                      <Label htmlFor={`opt-${i}`} className="flex-1 cursor-pointer text-sm">
                         {opt}
                         {isCorrectOpt && (
                           <span className="ml-2 text-xs font-semibold text-green-800">（正确）</span>
@@ -917,9 +995,7 @@ export function ExamPanel({
                   );
                 })}
               </RadioGroup>
-            )}
-
-            {question.type !== 'choice' && (
+            ) : (
               <div>
                 <Label htmlFor="fill-answer">你的答案</Label>
                 <input
@@ -931,6 +1007,11 @@ export function ExamPanel({
                   className="w-full p-2 border rounded mt-1"
                   placeholder="输入答案..."
                 />
+                {question.source === 'llm' && (
+                  <p className="text-xs text-amber-700 mt-1">
+                    本题未带齐选项，已按填空作答。可点下方重新出题。
+                  </p>
+                )}
               </div>
             )}
 
@@ -959,7 +1040,7 @@ export function ExamPanel({
             {showResult && (
               <div className="flex gap-2 sticky bottom-0 z-10 py-2 bg-background/95 backdrop-blur border-y">
                 <Button
-                  onClick={generateNewQuestion}
+                  onClick={() => generateNewQuestion()}
                   disabled={
                     isLoading ||
                     !!(targetCount && stats.total >= targetCount)
@@ -1177,13 +1258,25 @@ export function ExamPanel({
               若提示题库为空：在项目目录运行{' '}
               <code className="bg-muted px-1 rounded">npx tsx scripts/import-questions.ts</code>
             </p>
-            <Button onClick={generateNewQuestion} disabled={isLoading || !studentId} size="lg">
+            <Button
+              onClick={() => void generateNewQuestion()}
+              disabled={isLoading || !studentId}
+              size="lg"
+            >
               {isLoading
-                ? '生成中...'
+                ? drillSource === 'ai'
+                  ? 'AI 出题中…'
+                  : '抽题中…'
                 : targetCount
-                  ? `开始快练 ${targetCount} 题`
-                  : '开始练习'}
+                  ? `开始快练 ${targetCount} 题（${drillSource === 'ai' ? 'AI' : '经典'}）`
+                  : drillSource === 'ai'
+                    ? 'AI 出题并开始'
+                    : '经典题库 · 开始练习'}
             </Button>
+            <p className="text-[11px] text-muted-foreground text-center">
+              当前线路：{drillSource === 'ai' ? 'AI 出题（变式加练）' : '经典题库（课标主路径）'}
+              ，可在上方切换
+            </p>
           </CardContent>
         </Card>
       ) : null}

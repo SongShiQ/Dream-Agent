@@ -22,6 +22,8 @@ interface AssessmentResult {
   coding: number;
   rust: number;
   weakPoints: string[];
+  recommendedStage?: string;
+  recommendedUnit?: string;
   stage: string;
   summary: string;
   total?: number;
@@ -93,7 +95,6 @@ export function AssessPanel({ studentId, onContinue }: AssessPanelProps) {
       setResult(a);
       setStep('done');
       updateProfile({
-        currentStage: a.stage,
         weakPoints: a.weakPoints || [],
       });
       await refreshStats();
@@ -211,11 +212,14 @@ export function AssessPanel({ studentId, onContinue }: AssessPanelProps) {
     <div className="flex flex-col h-full p-4 items-center justify-center space-y-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>水平摸底（约 5 题）</CardTitle>
+          <CardTitle>水平摸底（12 题）</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <p>从本地题库抽题，规则判分，不依赖 API Key。</p>
-          <p>完成后会更新你的阶段建议与薄弱知识点。</p>
+          <p>从<strong>经典题库</strong>按 OS / Rust / 编码三维抽 12 题，排除你近期做过的题，规则判分。</p>
+          <p>
+            评估要<strong>稳定可比</strong>，故不用 AI 现场出卷；日常加练请用练习模式的「AI 出题」线。
+          </p>
+          <p>完成后只给出推荐起点和薄弱点；真正达标还需要后续微单元小测或 OJ AC。</p>
           {error && <p className="text-red-600">{error}</p>}
           <Button onClick={start} disabled={isLoading || !studentId} className="w-full">
             {isLoading ? '加载中...' : '开始摸底'}

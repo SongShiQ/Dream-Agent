@@ -14,6 +14,7 @@ import {
   getSessionForStudent,
   deleteSession,
 } from '@/lib/db/chat';
+import { getCurrentStudent } from '@/lib/auth/session';
 
 type LearnerContext = {
   name?: string;
@@ -85,14 +86,15 @@ function friendlyLlmError(error: unknown): string {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const studentId = searchParams.get('studentId');
+    const { student } = await getCurrentStudent(req, searchParams.get('studentId'));
     const mode = searchParams.get('mode') || 'chat';
     const sessionId = searchParams.get('sessionId');
     const action = searchParams.get('action') || 'messages';
 
-    if (!studentId) {
-      return Response.json({ error: 'studentId is required' }, { status: 400 });
+    if (!student) {
+      return Response.json({ error: 'Authentication required' }, { status: 401 });
     }
+    const studentId = student.id;
 
     if (action === 'sessions') {
       // 列表默认最多 10 条（与 enforceSessionLimit 一致）
@@ -149,11 +151,15 @@ export async function GET(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const studentId = searchParams.get('studentId');
+    const { student } = await getCurrentStudent(req, searchParams.get('studentId'));
     const sessionId = searchParams.get('sessionId');
-    if (!studentId || !sessionId) {
-      return Response.json({ error: 'studentId and sessionId required' }, { status: 400 });
+    if (!student) {
+      return Response.json({ error: 'Authentication required' }, { status: 401 });
     }
+    if (!sessionId) {
+      return Response.json({ error: 'sessionId required' }, { status: 400 });
+    }
+    const studentId = student.id;
     const ok = await deleteSession(sessionId, studentId);
     if (!ok) return Response.json({ error: 'Not found' }, { status: 404 });
     return Response.json({ ok: true });
@@ -199,42 +205,41 @@ export async function POST(req: Request) {
     let sessionSummary = '';
     let sessionId: string | undefined;
 
-    // 会话落库（需要 studentId）
-    if (body.studentId) {
+    const { student } = await getCurrentStudent(req, body.studentId);
+
+    // 会话落库（需要当前学员身份）
+    if (student) {
       try {
-        const student = await getStudentById(body.studentId);
-        if (student) {
-          let weak: string[] = [];
-          try {
-            weak = JSON.parse(student.weakPoints || '[]');
-          } catch {
-            weak = [];
-          }
-          const stats = await getStudentStats(student.id);
-          learnerContext = {
-            name: student.name,
-            currentStage: student.currentStage,
-            weakPoints: weak,
-            totalQuestions: stats.totalQuestions,
-            correctAnswers: stats.correctAnswers,
-          };
-          dbExtra = `- 服务端难度估计：${stats.currentDifficulty}`;
-          feedbackMode = student.feedbackMode || 'hybrid';
+        let weak: string[] = [];
+        try {
+          weak = JSON.parse(student.weakPoints || '[]');
+        } catch {
+          weak = [];
+        }
+        const stats = await getStudentStats(student.id);
+        learnerContext = {
+          name: student.name,
+          currentStage: student.currentStage,
+          weakPoints: weak,
+          totalQuestions: stats.totalQuestions,
+          correctAnswers: stats.correctAnswers,
+        };
+        dbExtra = `- 服务端难度估计：${stats.currentDifficulty}`;
+        feedbackMode = student.feedbackMode || 'hybrid';
 
-          const session = await getOrCreateSession({
-            studentId: body.studentId,
-            mode,
-            sessionId: body.sessionId,
-            forceNew: !!body.newSession,
-          });
-          sessionId = session.id;
-          sessionSummary = session.summary || '';
+        const session = await getOrCreateSession({
+          studentId: student.id,
+          mode,
+          sessionId: body.sessionId,
+          forceNew: !!body.newSession,
+        });
+        sessionId = session.id;
+        sessionSummary = session.summary || '';
 
-          // 持久化最新用户消息
-          const last = messages[messages.length - 1];
-          if (last?.role === 'user' && last.content) {
-            await appendMessage(session.id, 'user', String(last.content));
-          }
+        // 持久化最新用户消息
+        const last = messages[messages.length - 1];
+        if (last?.role === 'user' && last.content) {
+          await appendMessage(session.id, 'user', String(last.content));
         }
       } catch (e) {
         console.warn('chat: session/context failed', e);
@@ -284,7 +289,7 @@ export async function POST(req: Request) {
         console.info(
           JSON.stringify({
             api: 'chat',
-            studentId: body.studentId,
+            studentId: student?.id,
             sessionId,
             mode,
             latencyMs: Date.now() - t0,

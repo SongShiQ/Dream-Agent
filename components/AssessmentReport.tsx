@@ -10,6 +10,8 @@ interface AssessmentResult {
   coding: number;
   rust: number;
   weakPoints: string[];
+  recommendedStage?: string;
+  recommendedUnit?: string;
   stage: string;
   summary: string;
   total?: number;
@@ -38,7 +40,7 @@ export function AssessmentReport({ result, onClose, onContinue }: AssessmentRepo
     return '需要加强';
   };
 
-  const stage = result.stage;
+  const stage = result.recommendedStage || result.stage;
   const stageLabel = STAGE_LABELS[stage] || stage;
   const camp = STAGE_CAMP[stage];
   const labs = STAGE_LABS[stage] || camp?.labs || [];
@@ -62,7 +64,7 @@ export function AssessmentReport({ result, onClose, onContinue }: AssessmentRepo
 
       <Card className="border-primary/30">
         <CardHeader>
-          <CardTitle className="text-sm">建议起始阶段（已写入档案）</CardTitle>
+          <CardTitle className="text-sm">建议起始阶段（未直接晋级）</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center p-3">
@@ -75,6 +77,11 @@ export function AssessmentReport({ result, onClose, onContinue }: AssessmentRepo
             </p>
             {camp?.focus && (
               <p className="text-sm mt-3 text-left bg-muted/50 rounded-lg p-3">{camp.focus}</p>
+            )}
+            {result.recommendedUnit && (
+              <p className="text-xs text-muted-foreground mt-2">
+                推荐导学微单元：{result.recommendedUnit}
+              </p>
             )}
           </div>
         </CardContent>

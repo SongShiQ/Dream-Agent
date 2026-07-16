@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChatPanel } from '@/components/ChatPanel';
 import { ExamPanel } from '@/components/ExamPanel';
 import { AssessPanel } from '@/components/AssessPanel';
@@ -26,6 +26,34 @@ const LEARNING_MODES = {
 
 type ModeKey = keyof typeof LEARNING_MODES;
 
+type DashboardSidebar = {
+  primaryTask: null | {
+    title: string;
+    mode: ModeKey;
+    evidenceRequired: string;
+  };
+  foundation?: {
+    masteredRequired: number;
+    requiredTotal: number;
+    recommendedUnit: null | {
+      id: string;
+      title: string;
+      status: string;
+      objective: string;
+      evidence: string;
+    };
+  };
+  conditions: {
+    id: string;
+    label: string;
+    state: string;
+    evidence: string;
+  }[];
+  student: {
+    weakPoints: string[];
+  };
+};
+
 export default function Home() {
   const {
     user,
@@ -47,6 +75,7 @@ export default function Home() {
   const [drillFocusWeak, setDrillFocusWeak] = useState(false);
   const [copyToast, setCopyToast] = useState<string | null>(null);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const [dashboard, setDashboard] = useState<DashboardSidebar | null>(null);
 
   const clearDrill = () => {
     setDrillKp(null);
@@ -113,6 +142,27 @@ export default function Home() {
     clearDrill();
     setMode(target);
   };
+
+  useEffect(() => {
+    if (!user?.studentId) {
+      setDashboard(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const params = new URLSearchParams({ studentId: user.studentId });
+        const res = await fetch(`/api/me/dashboard?${params.toString()}`);
+        const data = await res.json();
+        if (!cancelled && res.ok) setDashboard(data.dashboard);
+      } catch {
+        if (!cancelled) setDashboard(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.studentId, user?.currentStage, user?.totalQuestions, user?.correctAnswers]);
 
   if (!isReady) {
     return (
@@ -453,15 +503,60 @@ export default function Home() {
             )}
 
             <h2 className="font-semibold mb-2">下一步建议</h2>
-            <p className="text-xs text-muted-foreground mb-2">与学习地图「今日三步」同一逻辑</p>
+            <p className="text-xs text-muted-foreground mb-2">
+              优先来自服务端 dashboard / mastery 聚合
+            </p>
             <div className="space-y-2 mb-4">
-              {isNewUser ? (
+              {dashboard?.primaryTask ? (
+                <>
+                  <button
+                    onClick={() => handleModeChange(dashboard.primaryTask?.mode || 'plan')}
+                    className="w-full text-left text-sm p-2 border rounded-lg hover:bg-muted border-primary/40 bg-primary/5"
+                  >
+                    1. {dashboard.primaryTask.title}
+                    <span className="block text-[10px] text-muted-foreground mt-1">
+                      {dashboard.primaryTask.evidenceRequired}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() =>
+                      (dashboard.student.weakPoints.length > 0
+                        ? startQuickDrill({ focusWeak: true })
+                        : handleModeChange('chat'))
+                    }
+                    className="w-full text-left text-sm p-2 border rounded-lg hover:bg-muted"
+                  >
+                    2. 卡住了：{dashboard.student.weakPoints.length > 0 ? '薄弱点 3 题' : '提问复盘'}
+                  </button>
+                  <button
+                    onClick={() => handleModeChange('report')}
+                    className="w-full text-left text-sm p-2 border rounded-lg hover:bg-muted"
+                  >
+                    3. 查看证据报告
+                    <span className="block text-[10px] text-muted-foreground mt-1">
+                      {dashboard.conditions.find((c) => c.state !== 'mastered')?.label ||
+                        '所有当前条件已达标'}
+                    </span>
+                  </button>
+                  {dashboard.foundation?.recommendedUnit && (
+                    <button
+                      onClick={() => startQuickDrill({ focusWeak: true })}
+                      className="w-full text-left text-sm p-2 border rounded-lg hover:bg-muted"
+                    >
+                      导学推荐：{dashboard.foundation.recommendedUnit.title}
+                      <span className="block text-[10px] text-muted-foreground mt-1">
+                        {dashboard.foundation.masteredRequired}/{dashboard.foundation.requiredTotal} 个必修微单元达标
+                      </span>
+                    </button>
+                  )}
+                </>
+              ) : isNewUser ? (
                 <>
                   <button
                     onClick={() => handleModeChange('assess')}
                     className="w-full text-left text-sm p-2 border rounded-lg hover:bg-muted border-primary/40 bg-primary/5"
                   >
-                    1. 水平摸底 · 约 5 题（先做这个）
+                    1. 水平摸底 · 12 题（先做这个）
                   </button>
                   <button
                     onClick={() => handleModeChange('quiz')}

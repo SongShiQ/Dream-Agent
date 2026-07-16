@@ -5,14 +5,16 @@ import prisma from '@/lib/db/index';
 import { getStudentStats } from '@/lib/db/student';
 import { buildTemplatePlan } from '@/lib/plan/template';
 import { generateLearningPlan } from '@/lib/agents/planner';
+import { authError, getCurrentStudent } from '@/lib/auth/session';
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const studentId = searchParams.get('studentId');
-    if (!studentId) {
-      return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
+    const { student } = await getCurrentStudent(req, searchParams.get('studentId'));
+    if (!student) {
+      return authError();
     }
+    const studentId = student.id;
 
     const existing = await prisma.learningPlan.findUnique({
       where: { studentId },
@@ -55,10 +57,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: '请求体无效' }, { status: 400 });
     }
 
-    const { studentId, useLlm } = body;
-    if (!studentId) {
-      return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
+    const { student: current } = await getCurrentStudent(req, body.studentId);
+    const { useLlm } = body;
+    if (!current) {
+      return authError();
     }
+    const studentId = current.id;
 
     const student = await prisma.student.findUnique({
       where: { id: studentId },
@@ -173,10 +177,12 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: '请求体无效' }, { status: 400 });
     }
 
-    const { studentId, dailyTasks, weeklyGoals } = body;
-    if (!studentId) {
-      return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
+    const { student: current } = await getCurrentStudent(req, body.studentId);
+    const { dailyTasks, weeklyGoals } = body;
+    if (!current) {
+      return authError();
     }
+    const studentId = current.id;
     if (!Array.isArray(dailyTasks)) {
       return NextResponse.json({ error: 'dailyTasks array required' }, { status: 400 });
     }

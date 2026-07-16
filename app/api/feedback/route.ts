@@ -4,10 +4,11 @@ import { NextResponse } from 'next/server';
 import { generateFeedback, generateAdaptiveFeedback } from '@/lib/feedback/index';
 import type { FeedbackMode, FeedbackContext } from '@/lib/feedback/types';
 import prisma from '@/lib/db/index';
+import { getCurrentStudent } from '@/lib/auth/session';
 
 export async function POST(req: Request) {
   try {
-    const { 
+    const {
       studentId, 
       question, 
       studentAnswer, 
@@ -22,17 +23,13 @@ export async function POST(req: Request) {
     let studentLevel = 50; // 默认水平
     let feedbackMode: FeedbackMode = mode || 'hybrid';
 
-    if (studentId) {
-      const student = await prisma.student.findUnique({
-        where: { id: studentId },
-      });
+    const { student: current } = await getCurrentStudent(req, studentId);
 
-      if (student) {
-        // 从学生档案获取水平和偏好
-        const weakPoints = student.weakPoints ? JSON.parse(student.weakPoints) : [];
-        studentLevel = weakPoints.length > 0 ? 40 : 60; // 简化：根据薄弱点判断
-        feedbackMode = (student.feedbackMode as FeedbackMode) || 'hybrid';
-      }
+    if (current) {
+      // 从学生档案获取水平和偏好
+      const weakPoints = current.weakPoints ? JSON.parse(current.weakPoints) : [];
+      studentLevel = weakPoints.length > 0 ? 40 : 60; // 简化：根据薄弱点判断
+      feedbackMode = (current.feedbackMode as FeedbackMode) || 'hybrid';
     }
 
     // 构建反馈上下文
