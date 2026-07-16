@@ -1,0 +1,23 @@
+{
+  "gateId": "env-setup",
+  "title": "环境与工具链自检",
+  "publicDescription": "提交 rustc/cargo/git 的版本自检输出或脚本片段。",
+  "rules": [
+    {
+      "id": "rustc",
+      "description": "包含 rustc 自检",
+      "requiredIncludes": ["rustc"]
+    },
+    {
+      "id": "cargo",
+      "description": "包含 cargo 自检",
+      "requiredIncludes": ["cargo"]
+    },
+    {
+      "id": "git",
+      "description": "包含 git 自检",
+      "requiredIncludes": ["git"]
+    }
+  ],
+  "forbiddenIncludes": ["rm -rf", "curl | sh", "Invoke-WebRequest"]
+}

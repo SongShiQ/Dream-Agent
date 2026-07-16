@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "policy": {
+    "passRule": "any_ac",
+    "note": "过关仅当存在 verdict=AC 的提交；静态分析 STATIC 不算过关；禁止自报 isPassed"
+  },
+  "gates": [
+    {
+      "id": "env-setup",
+      "title": "环境与工具链",
+      "chapter": "basic",
+      "stageIds": ["pre_study_tools", "basic_batch"],
+      "order": 10,
+      "judgeKind": "unit_oj",
+      "editorMode": "web_snippet",
+      "docLinks": [
+        {
+          "label": "rCore 环境说明",
+          "url": "https://github.com/rcore-os/rCore-Tutorial-v3"
+        }
+      ],
+      "checklist": [
+        { "id": "rustc", "text": "本机可运行 rustc / cargo", "required": true },
+        { "id": "git", "text": "已安装 Git 并能 clone 仓库", "required": true },
+        { "id": "qemu", "text": "（可选）qemu-system-riscv64 可用", "required": false }
+      ],
+      "conceptTags": ["rust", "syscall"],
+      "unlockAfter": [],
+      "testHint": "Phase B：将改为检测工具链输出或固定自检 crate 的 cargo test"
+    },
+    {
+      "id": "rustlings-variables",
+      "title": "Rustlings · 变量与可变性",
+      "chapter": "basic",
+      "stageIds": ["basic_batch", "pre_study_rust"],
+      "order": 20,
+      "judgeKind": "unit_oj",
+      "editorMode": "web_snippet",
+      "docLinks": [],
+      "checklist": [
+        { "id": "read", "text": "阅读题目要求", "required": true },
+        { "id": "local", "text": "本地 cargo test 通过后再提交", "required": true }
+      ],
+      "conceptTags": ["rust", "ownership"],
+      "unlockAfter": ["env-setup"],
+      "testHint": "Phase B：单文件 crate + cargo test"
+    },
+    {
+      "id": "rustlings-move",
+      "title": "Rustlings · 所有权与移动",
+      "chapter": "basic",
+      "stageIds": ["basic_batch", "pre_study_rust"],
+      "order": 30,
+      "judgeKind": "unit_oj",
+      "editorMode": "web_snippet",
+      "docLinks": [],
+      "checklist": [
+        { "id": "read", "text": "理解 move 与 borrow", "required": true }
+      ],
+      "conceptTags": ["ownership", "borrow"],
+      "unlockAfter": ["rustlings-variables"],
+      "testHint": "Phase B：unit_oj"
+    },
+    {
+      "id": "rust-result",
+      "title": "Rust · Result 与错误处理",
+      "chapter": "basic",
+      "stageIds": ["basic_batch", "pre_study_rust_adv"],
+      "order": 40,
+      "judgeKind": "unit_oj",
+      "editorMode": "web_snippet",
+      "docLinks": [],
+      "checklist": [
+        { "id": "result", "text": "使用 Result<T, E> 表达可恢复错误", "required": true },
+        { "id": "question", "text": "能解释 ? 运算符的传播语义", "required": true }
+      ],
+      "conceptTags": ["result", "option", "error_handling"],
+      "unlockAfter": ["rustlings-move"],
+      "testHint": "unit_oj：Result/Option 与错误传播"
+    },
+    {
+      "id": "basic-syscall-model",
+      "title": "基础 · 系统调用抽象模型",
+      "chapter": "basic",
+      "stageIds": ["basic_batch", "basic_trap"],
+      "order": 50,
+      "judgeKind": "unit_oj",
+      "editorMode": "web_snippet",
+      "docLinks": [],
+      "checklist": [
+        { "id": "enum", "text": "用 enum 或 match 表达 syscall 编号与分派", "required": true },
+        { "id": "boundary", "text": "区分用户态请求和内核态处理", "required": true }
+      ],
+      "conceptTags": ["syscall", "trap", "user_kernel_boundary"],
+      "unlockAfter": ["rust-result"],
+      "testHint": "unit_oj：小型 syscall dispatch 模型"
+    },
+    {
+      "id": "lab1-batch",
+      "title": "Lab1 · 批处理 OS",
+      "chapter": "basic",
+      "stageIds": ["basic_batch", "basic_trap"],
+      "order": 60,
+      "judgeKind": "integration_oj",
+      "editorMode": "ide_first",
+      "docLinks": [
+        {
+          "label": "rCore-Tutorial ch1/ch2",
+          "url": "https://github.com/rcore-os/rCore-Tutorial-v3"
+        }
+      ],
+      "checklist": [
+        { "id": "clone", "text": "本地 clone 课程仓库并切换到对应章节", "required": true },
+        { "id": "impl", "text": "完成批处理加载与运行相关实现", "required": true },
+        { "id": "local-test", "text": "本地按文档跑通测试后再 CLI 提交", "required": true }
+      ],
+      "conceptTags": ["trap", "syscall", "process"],
+      "unlockAfter": ["basic-syscall-model"],
+      "testHint": "Phase C：评测机跑课程脚本；目前提交记 PENDING，AC 后才 passed"
+    },
+    {
+      "id": "lab2-address",
+      "title": "Lab2 · 地址空间",
+      "chapter": "professional",
+      "stageIds": ["prof_address"],
+      "order": 70,
+      "judgeKind": "integration_oj",
+      "editorMode": "ide_first",
+      "docLinks": [
+        {
+          "label": "rCore 地址空间",
+          "url": "https://github.com/rcore-os/rCore-Tutorial-v3"
+        }
+      ],
+      "checklist": [
+        { "id": "ide", "text": "在 VS Code 中打开实验仓库", "required": true },
+        { "id": "page", "text": "实现页表/地址空间相关要求", "required": true },
+        { "id": "local-test", "text": "本地测试通过", "required": true }
+      ],
+      "conceptTags": ["virtual_memory", "page_fault", "memory"],
+      "unlockAfter": ["lab1-batch"],
+      "testHint": "integration_oj · IDE 提交"
+    },
+    {
+      "id": "lab3-process",
+      "title": "Lab3 · 进程管理",
+      "chapter": "professional",
+      "stageIds": ["prof_process"],
+      "order": 80,
+      "judgeKind": "integration_oj",
+      "editorMode": "ide_first",
+      "docLinks": [],
+      "checklist": [
+        { "id": "fork", "text": "完成 fork/wait/exit 等要求", "required": true },
+        { "id": "local-test", "text": "本地测试通过", "required": true }
+      ],
+      "conceptTags": ["process", "fork", "pcb", "scheduling"],
+      "unlockAfter": ["lab2-address"],
+      "testHint": "integration_oj"
+    },
+    {
+      "id": "lab4-filesystem",
+      "title": "Lab4 · 文件系统",
+      "chapter": "professional",
+      "stageIds": ["prof_fs"],
+      "order": 90,
+      "judgeKind": "integration_oj",
+      "editorMode": "ide_first",
+      "docLinks": [],
+      "checklist": [
+        { "id": "inode", "text": "完成 inode/目录相关要求", "required": true },
+        { "id": "local-test", "text": "本地测试通过", "required": true }
+      ],
+      "conceptTags": ["filesystem", "inode"],
+      "unlockAfter": ["lab3-process"],
+      "testHint": "integration_oj"
+    },
+    {
+      "id": "lab5-concurrency",
+      "title": "Lab5 · 并发",
+      "chapter": "professional",
+      "stageIds": ["prof_concurrency"],
+      "order": 100,
+      "judgeKind": "integration_oj",
+      "editorMode": "ide_first",
+      "docLinks": [],
+      "checklist": [
+        { "id": "lock", "text": "完成锁/同步相关要求", "required": true },
+        { "id": "local-test", "text": "本地测试通过", "required": true }
+      ],
+      "conceptTags": ["concurrency", "lock", "deadlock"],
+      "unlockAfter": ["lab4-filesystem"],
+      "testHint": "integration_oj · 全部专业关 AC 后可完成助教主路径"
+    },
+    {
+      "id": "project-final",
+      "title": "项目 · 老师大纲",
+      "chapter": "project",
+      "stageIds": ["project_intro", "project"],
+      "order": 110,
+      "judgeKind": "manual_teacher",
+      "editorMode": "ide_first",
+      "docLinks": [],
+      "checklist": [
+        { "id": "spec", "text": "按老师项目说明推进", "required": true }
+      ],
+      "conceptTags": [],
+      "unlockAfter": ["lab5-concurrency"],
+      "testHint": "不由助教自动 AC；需老师评分"
+    }
+  ]
+}

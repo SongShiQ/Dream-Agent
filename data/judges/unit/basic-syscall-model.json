@@ -1,0 +1,28 @@
+{
+  "gateId": "basic-syscall-model",
+  "title": "基础 · 系统调用抽象模型",
+  "publicDescription": "提交一个小型 syscall dispatch 模型，体现用户态请求、内核态分派与返回值。",
+  "rules": [
+    {
+      "id": "syscall-name",
+      "description": "代码中应出现 syscall 抽象",
+      "requiredAnyIncludes": ["syscall", "Syscall"]
+    },
+    {
+      "id": "dispatch",
+      "description": "使用 match 或分派函数表达系统调用处理",
+      "requiredAnyIncludes": ["match", "dispatch"]
+    },
+    {
+      "id": "user-kernel-boundary",
+      "description": "体现用户态/内核态边界或 trap 语义",
+      "requiredAnyIncludes": ["user", "kernel", "trap"]
+    }
+  ],
+  "forbiddenIncludes": ["todo!()", "unimplemented!()", "panic!(\"todo"],
+  "harness": {
+    "mode": "rust_single_file",
+    "template": "{{submission}}\n\n#[cfg(test)]\nmod opencamp_hidden_tests {\n    use super::*;\n{{tests}}\n}\n",
+    "tests": "    #[test]\n    fn syscall_model_compiles() {\n        main();\n    }\n"
+  }
+}

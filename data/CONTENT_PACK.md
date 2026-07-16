@@ -15,7 +15,30 @@ data/
     cards/*.md
     os-theory/*.md
     rust/*.md
+  labs/
+    gates.json        # 实验关卡定义（OJ：unit_oj / integration_oj）
+  curriculum/
+    2026-summer-os/
+      curriculum.json       # cohort / 阶段 / 晋级规则总入口
+      foundation-units.json # 导学微单元
+      required-gates.json   # 基础/专业必修 gate 契约
 ```
+
+## 实验关卡（OJ）
+
+- 定义：`data/labs/gates.json`（老师可改 checklist / 解锁链 / judgeKind）
+- 进度：数据库 `LabGateProgress`（**仅 verdict=AC 可 passed**）
+- 提交：`POST /api/submit` 带 `gateId`；Phase A 为 `STATIC` 静态分析，**不算过关**
+- 真跑测：Phase B unit_oj（cargo test）、Phase C integration_oj（lab 脚本）
+- 计划：`docs/plans/2026-07-14-lab-gates-oj-first.md`
+
+## 课程版本（Curriculum）
+
+- 定义：`data/curriculum/<version>/curriculum.json`
+- 导学单元：`foundation-units.json`
+- 必修关卡：`required-gates.json`
+- 规则：课程版本只声明“哪些证据算达标”；真实达标仍来自服务端小测、工具链自检或 OJ `AC`
+- 当前草案：`data/curriculum/2026-summer-os/`
 
 ## 一键导入题库
 

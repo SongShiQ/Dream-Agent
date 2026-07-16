@@ -1,0 +1,23 @@
+{
+  "gateId": "rustlings-move",
+  "title": "Rustlings · 所有权与移动",
+  "publicDescription": "提交一个展示 borrow/reference，且不靠 clone 逃避所有权问题的最小 Rust 片段。",
+  "rules": [
+    {
+      "id": "borrow-reference",
+      "description": "代码中应出现引用/借用",
+      "requiredAnyIncludes": ["&String", "&str", "&s", "borrow"]
+    },
+    {
+      "id": "ownership-value",
+      "description": "代码中应出现 String 值或所有权相关片段",
+      "requiredAnyIncludes": ["String::from", ".to_string()"]
+    }
+  ],
+  "forbiddenIncludes": ["todo!()", "unimplemented!()", ".clone()"],
+  "harness": {
+    "mode": "rust_single_file",
+    "template": "{{submission}}\n\n#[cfg(test)]\nmod opencamp_hidden_tests {\n    use super::*;\n{{tests}}\n}\n",
+    "tests": "    #[test]\n    fn ownership_gate_compiles() {\n        main();\n    }\n"
+  }
+}

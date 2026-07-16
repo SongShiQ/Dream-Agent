@@ -1,0 +1,93 @@
+{
+  "version": "2026-summer-os",
+  "status": "draft",
+  "passRule": "verdict_ac_only",
+  "gateIdPolicy": {
+    "note": "targetId is the implementation target. currentAliases exist only to bridge the existing draft gates.json.",
+    "normalizeDuring": "M1/M4"
+  },
+  "basicUnitGates": [
+    {
+      "targetId": "env-check",
+      "currentAliases": ["env-setup"],
+      "title": "环境与工具链自检",
+      "order": 10,
+      "judgeKind": "unit_oj",
+      "required": true,
+      "skills": ["rust_toolchain", "cargo", "git"],
+      "submissionKind": "controlled_output",
+      "unlocks": ["rust-variables"]
+    },
+    {
+      "targetId": "rust-variables",
+      "currentAliases": ["rustlings-variables"],
+      "title": "Rust 变量与可变性",
+      "order": 20,
+      "judgeKind": "unit_oj",
+      "required": true,
+      "skills": ["variables", "mutability", "basic_types"],
+      "submissionKind": "single_lib_rs",
+      "unlocks": ["rust-ownership"]
+    },
+    {
+      "targetId": "rust-ownership",
+      "currentAliases": ["rustlings-move"],
+      "title": "Rust 所有权与借用",
+      "order": 30,
+      "judgeKind": "unit_oj",
+      "required": true,
+      "skills": ["move", "borrow", "ownership"],
+      "submissionKind": "single_lib_rs",
+      "unlocks": ["rust-result"]
+    },
+    {
+      "targetId": "rust-result",
+      "currentAliases": [],
+      "title": "Rust Result 与错误处理",
+      "order": 40,
+      "judgeKind": "unit_oj",
+      "required": true,
+      "skills": ["result", "option", "error_handling"],
+      "submissionKind": "single_lib_rs",
+      "unlocks": ["basic-syscall-model"]
+    },
+    {
+      "targetId": "basic-syscall-model",
+      "currentAliases": [],
+      "title": "系统调用抽象模型",
+      "order": 50,
+      "judgeKind": "unit_oj",
+      "required": true,
+      "skills": ["syscall", "trap", "user_kernel_boundary"],
+      "submissionKind": "small_crate",
+      "unlocks": ["professional_candidate"]
+    }
+  ],
+  "professionalIntegrationGates": [
+    {
+      "targetId": "lab1-batch",
+      "requiredForProjectCandidate": true
+    },
+    {
+      "targetId": "lab2-address",
+      "requiredForProjectCandidate": true
+    },
+    {
+      "targetId": "lab3-process",
+      "requiredForProjectCandidate": true
+    },
+    {
+      "targetId": "lab4-filesystem",
+      "requiredForProjectCandidate": true
+    },
+    {
+      "targetId": "lab5-concurrency",
+      "requiredForProjectCandidate": true
+    }
+  ],
+  "projectGate": {
+    "targetId": "project-final",
+    "judgeKind": "manual_teacher",
+    "note": "Teacher review is required; platform does not auto-grade the final project."
+  }
+}

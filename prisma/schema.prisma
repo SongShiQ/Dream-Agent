@@ -16,6 +16,9 @@ model Student {
   name          String
   email         String?  @unique
   currentStage  String   @default("pre_study_theory")
+  cohortId      String   @default("2026-summer-os-main")
+  learningStatus String @default("active") // active | paused | project_candidate | project_confirmed | archived
+  curriculumVersion String @default("2026-summer-os")
   weakPoints    String   @default("[]") // JSON array as string
   feedbackMode  String   @default("hybrid") // guided | direct | hybrid
   createdAt     DateTime @default(now())
@@ -27,8 +30,16 @@ model Student {
   learningPlan  LearningPlan?
   codeSubmissions CodeSubmission[]
   chatSessions  ChatSession[]
+  labGateProgress LabGateProgress[]
+  dailyTaskProgress DailyTaskProgress[]
+  foundationQuizAttempts FoundationQuizAttempt[]
+
+  // 助教主路径完成（全部 unit/integration 关 AC 后）
+  assistantPathCompletedAt DateTime?
 
   @@index([currentStage])
+  @@index([cohortId])
+  @@index([learningStatus])
 }
 
 // 水平评估
@@ -78,10 +89,37 @@ model AnswerRecord {
   timeSpent   Int      @default(0) // 秒
   feedbackMode String  @default("hybrid") // guided | direct | hybrid
   answeredAt  DateTime @default(now())
+  foundationAttemptId String?
+  foundationAttempt   FoundationQuizAttempt? @relation(fields: [foundationAttemptId], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([questionId])
   @@index([answeredAt])
+  @@index([foundationAttemptId])
+}
+
+// 导学微单元小测：晋级/达标只能看 attempt 结果，不直接从普通练习题推断
+model FoundationQuizAttempt {
+  id                String   @id @default(cuid())
+  studentId         String
+  student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  curriculumVersion String   @default("2026-summer-os")
+  unitId            String
+  mode              String   @default("practice") // practice | high_stakes
+  status            String   @default("in_progress") // in_progress | passed | failed
+  questionIds       String   @default("[]") // JSON array
+  correct           Int      @default(0)
+  total             Int      @default(0)
+  correctRate       Int      @default(0)
+  requiredCorrectRate Int    @default(80)
+  attemptDate       String   // YYYY-MM-DD
+  startedAt         DateTime @default(now())
+  submittedAt       DateTime?
+  answerRecords     AnswerRecord[]
+
+  @@index([studentId, unitId])
+  @@index([studentId, attemptDate])
+  @@index([unitId, status])
 }
 
 // 学习计划
@@ -98,22 +136,128 @@ model LearningPlan {
   @@index([currentStage])
 }
 
-// 代码提交记录
+// 个人待办完成态：只表示 personal_done，不参与课程达标或晋级
+model DailyTaskProgress {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date        String   // YYYY-MM-DD，按学员本地日历
+  taskId      String
+  fingerprint String   @default("")
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([studentId, date, taskId])
+  @@index([studentId, date])
+  @@index([taskId])
+}
+
+// 代码提交记录（OJ 纪律：isPassed 仅当 verdict=AC）
 model CodeSubmission {
   id          String   @id @default(cuid())
   studentId   String
   student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  labName     String   // lab1-batch, lab2-address, etc.
-  code        String   // 提交的代码
+  labName     String   // 兼容旧字段；同 gateId
+  gateId      String   @default("") // env-setup | rustlings-xx | lab2-address ...
+  code        String   // 提交的代码 / 补丁说明
   language    String   @default("rust") // rust | c | asm
-  testResult  String   // 测试结果
+  testResult  String   @default("") // 测试输出摘要
+  /// AC | WA | CE | RE | TLE | SE | PENDING | STATIC
+  /// STATIC = 仅静态分析，绝不能当作过关
+  verdict     String   @default("PENDING")
+  judgeKind   String   @default("none") // none | unit_oj | integration_oj | manual_teacher
+  judgeLog    String   @default("") // 截断日志
+  /// 仅 verdict==AC 时为 true；禁止客户端自报写 true
   isPassed    Boolean  @default(false)
-  feedback    String   // AI 反馈
+  feedback    String   @default("") // 静态分析或评测说明
   createdAt   DateTime @default(now())
+  judgeJobs   JudgeJob[]
+  judgeRuns   JudgeRun[]
 
   @@index([studentId])
   @@index([labName])
+  @@index([gateId])
+  @@index([verdict])
   @@index([createdAt])
+}
+
+// 判题队列：Web 只入队，worker 独立消费；只有评测结果 AC 才能推进关卡
+model JudgeJob {
+  id          String   @id @default(cuid())
+  submissionId String @unique
+  submission CodeSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  studentId   String
+  gateId      String
+  judgeKind   String   @default("unit_oj") // unit_oj | integration_oj
+  status      String   @default("queued") // queued | running | completed | failed | cancelled
+  priority    Int      @default(0)
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(2)
+  leaseOwner  String?
+  leaseUntil  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  runs        JudgeRun[]
+
+  @@index([status, priority, createdAt])
+  @@index([studentId, gateId])
+  @@index([submissionId])
+}
+
+// 单次判题运行记录：保留 verdict 与公共日志，便于审计与重建进度
+model JudgeRun {
+  id          String   @id @default(cuid())
+  jobId       String
+  job         JudgeJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  submissionId String
+  submission CodeSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  verdict     String   @default("PENDING")
+  status      String   @default("completed") // completed | system_error
+  publicLog   String   @default("")
+  rawLog      String   @default("")
+  exitCode    Int?
+  timeMs      Int?
+  memoryKb    Int?
+  startedAt   DateTime @default(now())
+  finishedAt  DateTime @default(now())
+
+  @@index([jobId])
+  @@index([submissionId])
+  @@index([verdict])
+}
+
+// 运营风险处理状态：风险项仍动态计算，这里记录处理闭环
+model RiskResolution {
+  id          String   @id @default(cuid())
+  riskId      String   @unique
+  status      String   @default("open") // open | acknowledged | resolved | ignored
+  note        String   @default("")
+  handledBy   String   @default("")
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([status])
+  @@index([updatedAt])
+}
+
+// 实验关卡进度（OJ：passed 仅由 AC 提交写入）
+model LabGateProgress {
+  id           String    @id @default(cuid())
+  studentId    String
+  student      Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  gateId       String
+  /// locked | unlocked | passed
+  status       String    @default("locked")
+  passedAt     DateTime?
+  bestVerdict  String?
+  passSubmitId String?
+  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime  @default(now())
+
+  @@unique([studentId, gateId])
+  @@index([studentId, status])
+  @@index([gateId])
 }
 
 // 聊天会话（按学员 + 模式）

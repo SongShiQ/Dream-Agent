@@ -1,0 +1,84 @@
+{
+  "version": "2026-summer-os",
+  "status": "draft",
+  "quizPolicy": {
+    "defaultRequiredCorrectRate": 80,
+    "alternateSetRequiredAfterFailure": true,
+    "highStakesAttemptsPerDay": 1,
+    "masterySource": "graded_quiz"
+  },
+  "units": [
+    {
+      "id": "os-overview-interrupts",
+      "title": "OS 总览与中断",
+      "objective": "解释操作系统为什么需要特权级、中断和陷入，并能区分应用代码与内核代码的职责。",
+      "estimatedMinutes": 30,
+      "required": true,
+      "readingTags": ["os", "interrupt", "trap"],
+      "quizTags": ["os_overview", "interrupt", "trap"],
+      "requiredCorrectRate": 80,
+      "unlockAfter": [],
+      "qualifiesFor": ["orientation_to_basic"]
+    },
+    {
+      "id": "process-scheduling",
+      "title": "进程与调度",
+      "objective": "理解进程、任务切换、调度队列和系统调用之间的关系。",
+      "estimatedMinutes": 30,
+      "required": true,
+      "readingTags": ["process", "scheduling", "syscall"],
+      "quizTags": ["process", "pcb", "scheduling"],
+      "requiredCorrectRate": 80,
+      "unlockAfter": ["os-overview-interrupts"],
+      "qualifiesFor": ["orientation_to_basic"]
+    },
+    {
+      "id": "memory-virtual-memory",
+      "title": "内存与虚存",
+      "objective": "说明地址空间、页表、权限位和缺页异常的基本作用。",
+      "estimatedMinutes": 30,
+      "required": true,
+      "readingTags": ["memory", "virtual_memory", "page_table"],
+      "quizTags": ["memory", "virtual_memory", "page_fault"],
+      "requiredCorrectRate": 80,
+      "unlockAfter": ["process-scheduling"],
+      "qualifiesFor": ["orientation_to_basic"]
+    },
+    {
+      "id": "rust-basics",
+      "title": "Rust 基础",
+      "objective": "掌握变量、mut、函数、模式匹配和基础类型，能读懂简单 Rust 片段。",
+      "estimatedMinutes": 30,
+      "required": true,
+      "readingTags": ["rust", "variables", "match"],
+      "quizTags": ["rust", "variables", "match"],
+      "requiredCorrectRate": 80,
+      "unlockAfter": [],
+      "qualifiesFor": ["orientation_to_basic", "unit_oj_prerequisite"]
+    },
+    {
+      "id": "rust-ownership-result",
+      "title": "所有权与错误处理",
+      "objective": "解释 move、borrow、生命周期直觉、Option/Result 和 ? 的基本用法。",
+      "estimatedMinutes": 35,
+      "required": true,
+      "readingTags": ["ownership", "borrow", "result"],
+      "quizTags": ["ownership", "borrow", "result"],
+      "requiredCorrectRate": 80,
+      "unlockAfter": ["rust-basics"],
+      "qualifiesFor": ["orientation_to_basic", "unit_oj_prerequisite"]
+    },
+    {
+      "id": "toolchain-code-reading",
+      "title": "工具链与读代码",
+      "objective": "完成 rustc/cargo/git 基础自检，并能根据编译错误定位最小修改点。",
+      "estimatedMinutes": 25,
+      "required": true,
+      "readingTags": ["tooling", "cargo", "git", "compiler_error"],
+      "quizTags": ["tooling", "cargo", "compiler_error"],
+      "requiredCorrectRate": 80,
+      "unlockAfter": ["rust-basics"],
+      "qualifiesFor": ["orientation_to_basic", "env_check"]
+    }
+  ]
+}

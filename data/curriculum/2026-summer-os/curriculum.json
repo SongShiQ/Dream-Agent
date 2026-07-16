@@ -1,0 +1,83 @@
+{
+  "version": "2026-summer-os",
+  "title": "2026 Summer OS Training Camp",
+  "status": "draft",
+  "capacityPlan": {
+    "orientation": 2000,
+    "basic": {
+      "min": 400,
+      "max": 600
+    },
+    "professional": {
+      "min": 120,
+      "max": 200
+    },
+    "project": 60
+  },
+  "principles": [
+    "Capacity numbers are planning budgets, not forced elimination quotas.",
+    "Diagnostic results recommend a starting point; they do not directly promote or eliminate a student.",
+    "Only trusted course evidence can produce mastered status.",
+    "Only verdict=AC can mark an OJ gate as passed."
+  ],
+  "stages": [
+    {
+      "id": "orientation",
+      "title": "导学",
+      "primarySurface": "web_assessment",
+      "masteryEvidence": [
+        "foundation_unit_quiz",
+        "toolchain_check"
+      ]
+    },
+    {
+      "id": "basic",
+      "title": "基础",
+      "primarySurface": "unit_oj",
+      "masteryEvidence": [
+        "unit_oj_ac",
+        "concept_quiz"
+      ]
+    },
+    {
+      "id": "professional",
+      "title": "专业",
+      "primarySurface": "ide_first_integration_oj",
+      "masteryEvidence": [
+        "integration_oj_ac",
+        "submission_timeline"
+      ]
+    },
+    {
+      "id": "project",
+      "title": "项目",
+      "primarySurface": "teacher_project",
+      "masteryEvidence": [
+        "teacher_review"
+      ]
+    }
+  ],
+  "entryRules": {
+    "orientationToBasic": {
+      "requiredFoundationUnits": "all_required",
+      "recentQuizThreshold": 80,
+      "recentQuizCount": 2,
+      "toolchainCheck": "passed"
+    },
+    "basicToProfessional": {
+      "requiredUnitGates": "all_required",
+      "conceptQuizThreshold": 80,
+      "learningDaysInRecent7Days": 2
+    },
+    "professionalToProjectCandidate": {
+      "requiredIntegrationGates": "all_required",
+      "manualReview": "required",
+      "note": "Project candidate status is not automatic admission."
+    }
+  },
+  "documents": {
+    "foundationUnits": "./foundation-units.json",
+    "requiredGates": "./required-gates.json",
+    "operationsContract": "../../../docs/operations/2026-07-14-m0-course-ops-contract.md"
+  }
+}

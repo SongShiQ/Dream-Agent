@@ -1,0 +1,23 @@
+{
+  "gateId": "rustlings-variables",
+  "title": "Rustlings · 变量与可变性",
+  "publicDescription": "提交一个展示 let mut、重新赋值与断言的最小 Rust 片段。",
+  "rules": [
+    {
+      "id": "mutable-binding",
+      "description": "使用 let mut 声明可变绑定",
+      "requiredIncludes": ["let mut"]
+    },
+    {
+      "id": "assertion",
+      "description": "包含 assert_eq! 或等价断言",
+      "requiredAnyIncludes": ["assert_eq!", "assert!("]
+    }
+  ],
+  "forbiddenIncludes": ["todo!()", "unimplemented!()", "panic!(\"todo"],
+  "harness": {
+    "mode": "rust_single_file",
+    "template": "{{submission}}\n\n#[cfg(test)]\nmod opencamp_hidden_tests {\n    use super::*;\n{{tests}}\n}\n",
+    "tests": "    #[test]\n    fn variable_gate_compiles_and_runs() {\n        main();\n    }\n"
+  }
+}
