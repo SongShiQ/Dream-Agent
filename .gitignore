@@ -52,3 +52,8 @@ server.log.bak
 
 # patch scratch scripts (one-off)
 /scripts/_patch_*.mjs
+
+# local db backups
+/prisma/*.db.backup*
+/prisma/dev.db.backup*
+
