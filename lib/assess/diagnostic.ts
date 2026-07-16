@@ -11,6 +11,8 @@ export type DimScores = {
 
 export type DiagnosticResult = DimScores & {
   weakPoints: string[];
+  recommendedStage: string;
+  recommendedUnit: string;
   stage: string;
   summary: string;
   total: number;
@@ -41,12 +43,41 @@ function classifyKp(kp: string): keyof DimScores {
   return 'theory';
 }
 
-/** 按正确率映射建议阶段（对齐 schema Stage） */
+export function classifyQuestionDims(question: Pick<Question, 'knowledgePoints'>): (keyof DimScores)[] {
+  const kps = parseJsonArray(question.knowledgePoints);
+  const dims = Array.from(new Set(kps.map(classifyKp)));
+  return dims.length > 0 ? dims : ['theory'];
+}
+
+/** 按正确率映射建议细粒度阶段（避免一下跳到项目） */
 export function accuracyToStage(accuracy: number): string {
-  if (accuracy >= 0.85) return 'basic';
-  if (accuracy >= 0.65) return 'pre_study_tools';
+  if (accuracy >= 0.9) return 'basic_trap';
+  if (accuracy >= 0.8) return 'basic_batch';
+  if (accuracy >= 0.7) return 'pre_study_tools';
+  if (accuracy >= 0.55) return 'pre_study_rust_adv';
   if (accuracy >= 0.4) return 'pre_study_rust';
+  if (accuracy >= 0.25) return 'pre_study_process';
   return 'pre_study_theory';
+}
+
+export function weakPointsToRecommendedUnit(weakPoints: string[]): string {
+  const weak = weakPoints.map((w) => w.toLowerCase());
+  if (weak.some((w) => w.includes('rust') || w.includes('owner') || w.includes('borrow'))) {
+    return 'rust-ownership-result';
+  }
+  if (weak.some((w) => w.includes('tool') || w.includes('cargo') || w.includes('git'))) {
+    return 'toolchain-code-reading';
+  }
+  if (weak.some((w) => w.includes('memory') || w.includes('page'))) {
+    return 'memory-virtual-memory';
+  }
+  if (weak.some((w) => w.includes('process') || w.includes('sched') || w.includes('fork'))) {
+    return 'process-scheduling';
+  }
+  if (weak.some((w) => w.includes('trap') || w.includes('interrupt') || w.includes('syscall'))) {
+    return 'os-overview-interrupts';
+  }
+  return 'rust-basics';
 }
 
 export function scoreDiagnostic(
@@ -70,8 +101,7 @@ export function scoreDiagnostic(
     if (ok) correct++;
 
     const kps = parseJsonArray(q.knowledgePoints);
-    const dims = new Set(kps.map(classifyKp));
-    if (dims.size === 0) dims.add('theory');
+    const dims = new Set<keyof DimScores>(classifyQuestionDims(q));
 
     for (const d of dims) {
       dim[d].total++;
@@ -94,6 +124,7 @@ export function scoreDiagnostic(
   const rust = score(dim.rust);
   const stage = accuracyToStage(accuracy);
   const weakPoints = Array.from(new Set(weak)).slice(0, 12);
+  const recommendedUnit = weakPointsToRecommendedUnit(weakPoints);
 
   const summary = [
     `摸底完成：${correct}/${total} 正确（${Math.round(accuracy * 100)}%）。`,
@@ -101,7 +132,7 @@ export function scoreDiagnostic(
     weakPoints.length
       ? `建议优先复习：${weakPoints.join('、')}。`
       : '暂无明显薄弱点，可进入常规练习。',
-    `建议阶段：${stage}。`,
+    `推荐起点：${stage}；推荐微单元：${recommendedUnit}。`,
   ].join(' ');
 
   return {
@@ -109,6 +140,8 @@ export function scoreDiagnostic(
     coding,
     rust,
     weakPoints,
+    recommendedStage: stage,
+    recommendedUnit,
     stage,
     summary,
     total,

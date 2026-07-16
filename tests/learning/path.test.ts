@@ -6,13 +6,27 @@ import {
 } from '@/lib/learning/today-progress';
 
 describe('buildPathNodes', () => {
-  it('marks current and done stages', () => {
-    const nodes = buildPathNodes('basic');
-    expect(nodes.length).toBe(7);
-    const cur = nodes.find((n) => n.stage === 'basic');
+  it('marks current without inferring previous stages as done', () => {
+    const nodes = buildPathNodes('basic_batch');
+    expect(nodes.length).toBeGreaterThanOrEqual(12);
+    const cur = nodes.find((n) => n.stage === 'basic_batch');
     expect(cur?.status).toBe('current');
-    expect(nodes[0].status).toBe('done');
+    expect(nodes[0].status).toBe('locked');
     expect(nodes[nodes.length - 1].status).toBe('locked');
+  });
+
+  it('marks stages done only when mastery evidence exists', () => {
+    const nodes = buildPathNodes('basic_batch', {
+      masteredStages: ['pre_study_theory'],
+    });
+    expect(nodes.find((n) => n.stage === 'pre_study_theory')?.status).toBe('done');
+    expect(nodes.find((n) => n.stage === 'pre_study_process')?.status).toBe('locked');
+  });
+
+  it('maps legacy basic to basic_batch current', () => {
+    const nodes = buildPathNodes('basic');
+    const cur = nodes.find((n) => n.status === 'current');
+    expect(cur?.stage).toBe('basic_batch');
   });
 });
 

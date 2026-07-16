@@ -56,15 +56,16 @@ function parseFrontmatter(raw: string): {
     const m = line.match(/^(\w+):\s*(.*)$/);
     if (!m) continue;
     const key = m[1];
-    let val: unknown = m[2].trim();
-    if (typeof val === 'string' && val.startsWith('[') && val.endsWith(']')) {
+    const rawVal = m[2].trim();
+    let val: string | string[] = rawVal;
+    if (val.startsWith('[') && val.endsWith(']')) {
       try {
         val = JSON.parse(val.replace(/(\w+)/g, '"$1"').replace(/""/g, '"'));
       } catch {
-        val = val
+        val = rawVal
           .slice(1, -1)
           .split(',')
-          .map((s) => s.trim().replace(/^["']|["']$/g, ''))
+          .map((s: string) => s.trim().replace(/^["']|["']$/g, ''))
           .filter(Boolean);
       }
     }

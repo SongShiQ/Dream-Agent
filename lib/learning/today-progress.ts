@@ -1,5 +1,5 @@
 /**
- * 今日三步完成态 — 按学员 + 本地日期持久化（localStorage）
+ * 今日三步完成态 — personal_done 走服务端 DailyTaskProgress
  */
 
 export type TodayProgressState = {
@@ -78,5 +78,59 @@ export function markStepDone(
     fingerprint,
   };
   saveTodayProgress(studentId, next);
+  return next;
+}
+
+export async function fetchTodayProgress(opts: {
+  studentId: string;
+  fingerprint: string;
+  date?: string;
+}): Promise<TodayProgressState> {
+  const date = opts.date || localDateKey();
+  if (!opts.studentId) return { date, done: [], fingerprint: opts.fingerprint };
+  const params = new URLSearchParams({
+    studentId: opts.studentId,
+    fingerprint: opts.fingerprint,
+    date,
+  });
+  const res = await fetch(`/api/me/daily-progress?${params.toString()}`);
+  if (!res.ok) return loadTodayProgress(opts.studentId, opts.fingerprint);
+  const data = await res.json();
+  return data.progress || { date, done: [], fingerprint: opts.fingerprint };
+}
+
+export async function setTodayTaskDone(opts: {
+  studentId: string;
+  fingerprint: string;
+  taskId: string;
+  done: boolean;
+  date?: string;
+}): Promise<TodayProgressState> {
+  const date = opts.date || localDateKey();
+  const res = await fetch('/api/me/daily-progress', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      studentId: opts.studentId,
+      taskId: opts.taskId,
+      done: opts.done,
+      fingerprint: opts.fingerprint,
+      date,
+    }),
+  });
+  if (!res.ok) {
+    const cur = loadTodayProgress(opts.studentId, opts.fingerprint);
+    const done = opts.done
+      ? cur.done.includes(opts.taskId)
+        ? cur.done
+        : [...cur.done, opts.taskId]
+      : cur.done.filter((id) => id !== opts.taskId);
+    const next = { date, done, fingerprint: opts.fingerprint };
+    saveTodayProgress(opts.studentId, next);
+    return next;
+  }
+  const data = await res.json();
+  const next = data.progress || { date, done: [], fingerprint: opts.fingerprint };
+  saveTodayProgress(opts.studentId, next);
   return next;
 }

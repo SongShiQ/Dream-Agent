@@ -66,9 +66,9 @@ export async function analyzeCode(
     });
     // 注入实质问题（stub/thin）到每个维度，避免「各维 100、总 100」
     const mergedIssues = [...substance.issues, ...result.issues];
-    const mergedSuggestions = [
-      ...new Set([...substance.suggestions, ...result.suggestions]),
-    ];
+    const mergedSuggestions = Array.from(
+      new Set([...substance.suggestions, ...result.suggestions])
+    );
     let score = applyScoreCap(result.score, substance.scoreCap);
     // stub/thin 时从「满分起点」再体现实质问题：若无其它 issue 也必须低于 cap
     if (substance.level === 'stub' && score > substance.scoreCap) {
