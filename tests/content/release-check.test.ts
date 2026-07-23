@@ -188,4 +188,55 @@ describe('content release check', () => {
       code: 'invalid_topic_next_task',
     });
   });
+
+  it('surfaces foundation question quality issues as warnings in development and blockers in release', () => {
+    const foundationQuestionQuality = {
+      sourcePath: 'data/questions/*.json',
+      eligibleQuestions: 12,
+      uniquePrompts: 11,
+      duplicatePromptGroups: 1,
+      malformedChoiceQuestions: 1,
+      shallowExplanationQuestions: 2,
+      minimumExplanationLength: 8,
+      issues: [
+        {
+          code: 'duplicate_question_prompt' as const,
+          questionIds: ['q-1', 'q-2'],
+          message: '存在 2 道规范化后题干相同的 Foundation 题目',
+          samples: ['相同题干', '相同题干。'],
+        },
+      ],
+    };
+
+    const development = evaluateContentRelease({
+      mode: 'development',
+      knowledgeItems: [],
+      experimentItems: [],
+      decisions: [],
+      foundationQuestionQuality,
+    });
+    const release = evaluateContentRelease({
+      mode: 'release',
+      knowledgeItems: [],
+      experimentItems: [],
+      decisions: [],
+      foundationQuestionQuality,
+    });
+
+    expect(development.decision).toBe('pass');
+    expect(development.summary.foundationQualityEligibleQuestions).toBe(12);
+    expect(development.summary.foundationDuplicatePromptGroups).toBe(1);
+    expect(development.summary.foundationMalformedQuestions).toBe(1);
+    expect(development.summary.foundationShallowExplanations).toBe(2);
+    expect(development.issues[0]).toMatchObject({
+      severity: 'warning',
+      targetKind: 'foundation_question_quality',
+      code: 'duplicate_question_prompt',
+    });
+    expect(release.decision).toBe('fail');
+    expect(release.issues[0]).toMatchObject({
+      severity: 'error',
+      targetKind: 'foundation_question_quality',
+    });
+  });
 });

@@ -175,6 +175,10 @@ type ContentReleaseCheck = {
     foundationUncoveredRemediationTags: number;
     foundationTopicPacks: number;
     foundationTopicPackIssues: number;
+    foundationQualityEligibleQuestions: number;
+    foundationDuplicatePromptGroups: number;
+    foundationMalformedQuestions: number;
+    foundationShallowExplanations: number;
     errors: number;
     warnings: number;
     blockers: number;
@@ -885,6 +889,20 @@ export default function OpsPage() {
                 </div>
                 <p className="mt-1 text-muted-foreground">
                   题量不足会阻断 release；语义标签缺口只做数据质量提示，不代替教师审核。
+                </p>
+              </div>
+              <div className="rounded border bg-muted/30 p-3 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-medium">Foundation 题目质量抽检</span>
+                  <span className="text-muted-foreground">
+                    有效题目 {contentRelease.summary.foundationQualityEligibleQuestions} · 重复题干{' '}
+                    {contentRelease.summary.foundationDuplicatePromptGroups} · 结构错误{' '}
+                    {contentRelease.summary.foundationMalformedQuestions} · 解析过短{' '}
+                    {contentRelease.summary.foundationShallowExplanations}
+                  </span>
+                </div>
+                <p className="mt-1 text-muted-foreground">
+                  质量抽检只检查题目结构和解释深度，不把题量达标等同于教学质量达标。
                 </p>
               </div>
               <div className="space-y-1 text-xs">
