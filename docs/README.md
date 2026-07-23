@@ -7,7 +7,8 @@
 1. [最新教师汇报作战手册](reports/宋红-AgentOS导学与基础阶段进展汇报作战手册-2026-07-21.md)：项目定位、当前进展、开源项目吸收情况、卡点和下周计划。
 2. [四个开源项目源码审计](research/2026-07-17-four-repos-source-audit.md)：DeepTutor、llm-wiki-skills、OpenKB 和 llm_wiki 的源码级结论。
 3. [最终组合后的工作方案](plans/2026-07-20-final-combination-next-work-plan.md)：分层组合、工程阶段、验收标准和风险控制。
-4. [工作日志](日志/2026-07-23-workspace-github-sync.md)：最近一次代码、测试和发布整理记录。
+4. [最新工作日志](日志/2026-07-23-foundation-question-quality-and-ops.md)：Foundation 题目质量门禁、运营页验收和当前发布边界。
+5. [工作区整理日志](日志/2026-07-23-workspace-github-sync.md)：代码、测试和 GitHub 发布整理记录。
 
 ## 目录说明
 
