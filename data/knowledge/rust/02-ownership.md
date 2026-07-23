@@ -1,3 +1,11 @@
+---
+id: rust-02-ownership
+title: Rust 所有权系统
+tags: [rust, ownership, borrow, lifetime]
+stage: pre_study_rust
+question_tags: [ownership, borrow]
+---
+
 # Rust 所有权系统
 
 ## 所有权规则

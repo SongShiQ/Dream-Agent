@@ -1,3 +1,11 @@
+---
+id: rust-04-error-handling
+title: Rust 错误处理
+tags: [rust, result, error_handling]
+stage: pre_study_rust
+question_tags: [result]
+---
+
 # Rust 错误处理
 
 ## Result 枚举

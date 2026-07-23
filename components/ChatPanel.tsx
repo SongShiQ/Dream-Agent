@@ -9,6 +9,15 @@ import { useApp } from '@/lib/context/app-context';
 import { readClientLLMConfig } from '@/lib/llm/client-config';
 import { MarkdownBody } from '@/components/MarkdownBody';
 
+type KnowledgeReference = {
+  id: string;
+  title: string;
+  source: string;
+  sourceRefs: string[];
+  labGateIds: string[];
+  reviewStatus: 'reviewed' | 'pending';
+};
+
 interface ChatPanelProps {
   mode?: string;
   placeholder?: string;
@@ -30,10 +39,14 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+  const [messageKnowledgeRefs, setMessageKnowledgeRefs] = useState<
+    Record<string, KnowledgeReference[]>
+  >({});
   const [loadKey, setLoadKey] = useState(0); // remount useChat when session changes
   const newSessionRef = useRef(false);
   const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [showSessionList, setShowSessionList] = useState(false);
+  const pendingKnowledgeRefs = useRef<KnowledgeReference[]>([]);
 
   const studentId = user?.studentId;
 
@@ -73,6 +86,7 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
           // 创建空会话：POST 一条占位不合适；用 GET 最新 + 前端清空，发送时带 newSession
           newSessionRef.current = true;
           setInitialMessages([]);
+          setMessageKnowledgeRefs({});
           setSessionId(null);
           setSessionTitle('新会话');
           setLoadKey((k) => k + 1);
@@ -97,14 +111,26 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
 
         setSessionId(data.session?.id || null);
         setSessionTitle(data.session?.title || '会话');
+        const refsByMessage: Record<string, KnowledgeReference[]> = {};
         const msgs: Message[] = (data.messages || []).map(
-          (m: { id: string; role: string; content: string }) => ({
+          (m: {
+            id: string;
+            role: string;
+            content: string;
+            knowledgeRefs?: KnowledgeReference[];
+          }) => {
+            if (Array.isArray(m.knowledgeRefs) && m.knowledgeRefs.length > 0) {
+              refsByMessage[m.id] = m.knowledgeRefs;
+            }
+            return {
             id: m.id,
             role: m.role as Message['role'],
             content: m.content,
-          })
+            };
+          }
         );
         setInitialMessages(msgs);
+        setMessageKnowledgeRefs(refsByMessage);
         newSessionRef.current = false;
         setLoadKey((k) => k + 1);
       } catch {
@@ -149,9 +175,25 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
           setSessionId(sid);
           newSessionRef.current = false;
         }
+        const encodedRefs = res.headers.get('X-Knowledge-Refs');
+        if (encodedRefs) {
+          try {
+            const refs = JSON.parse(decodeURIComponent(encodedRefs));
+            if (Array.isArray(refs) && refs.length > 0) {
+              pendingKnowledgeRefs.current = refs;
+            }
+          } catch {
+            // Ignore malformed optional reference metadata.
+          }
+        }
       },
       onFinish: (message) => {
         setChatError(null);
+        const refs = pendingKnowledgeRefs.current;
+        if (refs.length > 0) {
+          setMessageKnowledgeRefs((current) => ({ ...current, [message.id]: refs }));
+          pendingKnowledgeRefs.current = [];
+        }
         addRecord({
           mode: mode as 'chat' | 'quiz' | 'practice' | 'plan' | 'assess',
           content: message.content.slice(0, 200),
@@ -342,7 +384,9 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
           </Card>
         )}
 
-        {messages.map((message) => (
+        {messages.map((message) => {
+          const refs = messageKnowledgeRefs[message.id] || [];
+          return (
           <Card key={message.id} className={message.role === 'user' ? 'ml-12' : 'mr-12'}>
             <CardContent className="p-3">
               <p className="text-sm font-medium mb-1">
@@ -353,9 +397,31 @@ export function ChatPanel({ mode = 'chat', placeholder = '输入你的问题...'
               ) : (
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               )}
+              {message.role === 'assistant' && refs.length > 0 && (
+                <details className="mt-3 rounded border bg-muted/30 px-2 py-1.5">
+                  <summary className="cursor-pointer text-xs text-muted-foreground">
+                    本轮检索依据（{refs.length}）
+                  </summary>
+                  <div className="mt-2 space-y-1.5">
+                    {refs.map((ref) => (
+                      <div key={ref.id} className="text-[11px] text-muted-foreground">
+                        <span className="font-medium text-foreground">[K:{ref.id}] {ref.title}</span>
+                        <span className="ml-1">· {ref.source}</span>
+                        {ref.labGateIds.length > 0 && (
+                          <span className="ml-1">· 关联 {ref.labGateIds.join('、')}</span>
+                        )}
+                        {ref.reviewStatus !== 'reviewed' && (
+                          <span className="ml-1 text-amber-700">· 待教师复核</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
 
         {isLoading && (
           <Card className="mr-12">

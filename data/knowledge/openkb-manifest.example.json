@@ -1,0 +1,28 @@
+{
+  "courseVersion": "2026-summer-os",
+  "sources": {
+    "rcore-tutorial-v3-ch4": {
+      "title": "rCore-Tutorial-v3：地址空间与页表",
+      "url": "https://github.com/rcore-os/rCore-Tutorial-v3",
+      "kind": "course-repository",
+      "version": "v3"
+    }
+  },
+  "defaultSourceRefs": ["rcore-tutorial-v3-ch4"],
+  "pageTypes": ["concepts", "summaries"],
+  "publicationStatus": "draft",
+  "reviewStatus": "pending",
+  "overrides": {
+    "concepts/address-space.md": {
+      "id": "virtual-memory",
+      "tags": ["memory", "virtual_memory", "page_fault"],
+      "stage": "basic",
+      "labs": ["lab2-address"],
+      "labGateIds": ["lab2-address"],
+      "prerequisiteIds": ["os-overview-interrupts"],
+      "misconceptionIds": ["va-is-pa", "user-page-table-write"],
+      "questionTags": ["virtual_memory", "memory", "page_fault"],
+      "relatedIds": ["trap-syscall", "process-fork"]
+    }
+  }
+}

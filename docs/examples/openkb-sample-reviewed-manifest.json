@@ -1,0 +1,17 @@
+{
+  "courseVersion": "openkb-cli-verification",
+  "sources": {
+    "vaswani-2017-attention": {
+      "title": "Attention Is All You Need",
+      "url": "https://arxiv.org/abs/1706.03762",
+      "kind": "paper",
+      "version": "2017"
+    }
+  },
+  "defaultSourceRefs": ["vaswani-2017-attention"],
+  "pageTypes": ["concepts", "summaries"],
+  "publicationStatus": "published",
+  "reviewStatus": "reviewed",
+  "reviewedBy": "verification-teacher",
+  "reviewedAt": "2026-07-19T08:00:00Z"
+}

@@ -1,3 +1,11 @@
+---
+id: os-theory-02-process-thread
+title: 进程与线程管理
+tags: [process, thread, state, pcb, scheduling]
+stage: pre_study_theory
+question_tags: [process, pcb, scheduling]
+---
+
 # 进程与线程管理
 
 ## 进程的概念

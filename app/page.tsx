@@ -275,8 +275,8 @@ export default function Home() {
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="border-b p-4">
-          <div className="flex justify-between items-center mb-3">
-            <div>
+          <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
+            <div className="min-w-0">
               <h1 className="text-xl font-bold">OpenCamp AI 助教</h1>
               <p className="text-sm text-muted-foreground">
                 欢迎，{user?.name}
@@ -300,16 +300,16 @@ export default function Home() {
                 </button>
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 gap-2 max-[480px]:w-full max-[480px]:justify-end">
               <button
                 onClick={() => setShowSettings(true)}
-                className="px-4 py-2 text-sm border rounded-lg hover:bg-muted"
+                className="shrink-0 whitespace-nowrap px-3 py-2 text-sm border rounded-lg hover:bg-muted"
               >
                 设置
               </button>
               <button
                 onClick={() => setLogoutConfirm(true)}
-                className="px-4 py-2 text-sm border rounded-lg hover:bg-muted"
+                className="shrink-0 whitespace-nowrap px-3 py-2 text-sm border rounded-lg hover:bg-muted"
               >
                 退出登录
               </button>

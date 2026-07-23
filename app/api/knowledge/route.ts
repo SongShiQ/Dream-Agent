@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import {
   searchCards,
   getCardsByTag,
+  getKnowledgeCardById,
   getStageMeta,
   getAllStageMeta,
   getOpencampMeta,
@@ -13,6 +14,7 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const tag = searchParams.get('tag');
+    const id = searchParams.get('id');
     const q = searchParams.get('q') || searchParams.get('query');
     const stage = searchParams.get('stage');
     const action = searchParams.get('action');
@@ -21,6 +23,14 @@ export async function GET(req: Request) {
       const stages = await getAllStageMeta();
       const opencamp = await getOpencampMeta();
       return NextResponse.json({ stages, opencamp });
+    }
+
+    if (id) {
+      const card = await getKnowledgeCardById(id);
+      if (!card) {
+        return NextResponse.json({ error: 'Knowledge card not found' }, { status: 404 });
+      }
+      return NextResponse.json({ card: publicCard(card) });
     }
 
     if (stage) {
@@ -55,7 +65,7 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json(
-      { error: 'Provide tag, q, stage, or action=stages' },
+      { error: 'Provide id, tag, q, stage, or action=stages' },
       { status: 400 }
     );
   } catch (error) {
@@ -116,6 +126,18 @@ function publicCard(c: {
   tags: string[];
   stage?: string;
   labs: string[];
+  courseVersion: string;
+  publicationStatus: 'published' | 'draft' | 'deprecated';
+  reviewStatus: 'reviewed' | 'pending';
+  sourceRefs: string[];
+  sources: { id: string; title: string; url?: string; kind?: string; version?: string }[];
+  prerequisiteIds: string[];
+  misconceptionIds: string[];
+  questionTags: string[];
+  labGateIds: string[];
+  relatedIds: string[];
+  reviewedBy?: string;
+  reviewedAt?: string;
   source: string;
   excerpt: string;
   content?: string;
@@ -127,6 +149,18 @@ function publicCard(c: {
     tags: c.tags,
     stage: c.stage,
     labs: c.labs,
+    courseVersion: c.courseVersion,
+    publicationStatus: c.publicationStatus,
+    reviewStatus: c.reviewStatus,
+    sourceRefs: c.sourceRefs,
+    sources: c.sources,
+    prerequisiteIds: c.prerequisiteIds,
+    misconceptionIds: c.misconceptionIds,
+    questionTags: c.questionTags,
+    labGateIds: c.labGateIds,
+    relatedIds: c.relatedIds,
+    reviewedBy: c.reviewedBy,
+    reviewedAt: c.reviewedAt,
     source: c.source,
     excerpt: c.excerpt,
     // 全文供前端 Markdown 展开；excerpt 仅作预览

@@ -1,3 +1,11 @@
+---
+id: os-theory-03-memory
+title: 内存管理
+tags: [memory, virtual_memory, page_fault]
+stage: pre_study_theory
+question_tags: [memory, virtual_memory, page_fault]
+---
+
 # 内存管理
 
 ## 地址空间

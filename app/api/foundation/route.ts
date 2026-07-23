@@ -44,11 +44,28 @@ export async function POST(req: Request) {
         highStakes: body.highStakes ?? true,
       });
       if ('error' in result) {
-        const status = result.error === 'HIGH_STAKES_LIMIT_REACHED' ? 429 : 400;
-        return NextResponse.json({ error: result.error }, { status });
+        const status =
+          result.error === 'HIGH_STAKES_LIMIT_REACHED'
+            ? 429
+            : result.error === 'FOUNDATION_UNIT_LOCKED'
+              ? 409
+            : result.error === 'QUESTION_SET_INSUFFICIENT'
+              ? 422
+              : 400;
+        return NextResponse.json(
+          {
+            error: result.error,
+            ...('available' in result
+              ? { available: result.available, required: result.required }
+              : {}),
+            ...('unlockAfter' in result ? { unlockAfter: result.unlockAfter } : {}),
+          },
+          { status }
+        );
       }
       return NextResponse.json({
         attempt: result.attempt,
+        questionSet: result.questionSet,
         questions: result.questions.map(stripAnswers),
       });
     }
@@ -63,10 +80,14 @@ export async function POST(req: Request) {
         answers: body.answers,
       });
       if ('error' in result) {
-        return NextResponse.json({ error: result.error }, { status: 400 });
+        const status =
+          result.error === 'ATTEMPT_QUESTION_SET_STALE' || result.error === 'ATTEMPT_UNIT_STALE'
+            ? 409
+            : 400;
+        return NextResponse.json({ error: result.error }, { status });
       }
       const foundation = await buildFoundationDashboard(student.id);
-      return NextResponse.json({ attempt: result.attempt, foundation });
+      return NextResponse.json({ attempt: result.attempt, diagnosis: result.diagnosis, foundation });
     }
 
     return NextResponse.json({ error: 'unknown action' }, { status: 400 });

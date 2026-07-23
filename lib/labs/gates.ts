@@ -11,6 +11,8 @@ import type {
   JudgeVerdict,
   LabGateDef,
 } from './types';
+import { recordReviewEvidence } from '@/lib/progress/review-scheduler';
+import { resolveProgressDate } from '@/lib/progress/daily';
 
 const GATES_PATH = join(process.cwd(), 'data', 'labs', 'gates.json');
 
@@ -77,24 +79,21 @@ export async function getProgressMap(studentId: string) {
  */
 export async function syncStudentGateProgress(studentId: string) {
   const gates = await listGateDefs();
-  let map = await getProgressMap(studentId);
-
-  // 先保证每关有行
-  for (const g of gates) {
-    if (!map.has(g.id)) {
-      const initial =
-        (g.unlockAfter || []).length === 0 ? 'unlocked' : 'locked';
-      await prisma.labGateProgress.create({
-        data: {
+  await prisma.$transaction(
+    gates.map((gate) =>
+      prisma.labGateProgress.upsert({
+        where: { studentId_gateId: { studentId, gateId: gate.id } },
+        create: {
           studentId,
-          gateId: g.id,
-          status: initial,
+          gateId: gate.id,
+          status: (gate.unlockAfter || []).length === 0 ? 'unlocked' : 'locked',
         },
-      });
-    }
-  }
+        update: {},
+      })
+    )
+  );
 
-  map = await getProgressMap(studentId);
+  const map = await getProgressMap(studentId);
 
   // 刷新非 passed 的 locked/unlocked
   for (const g of gates) {
@@ -102,8 +101,8 @@ export async function syncStudentGateProgress(studentId: string) {
     if (!row || row.status === 'passed') continue;
     const next = computeUnlockStatus(g, map);
     if (next !== row.status && next !== 'passed') {
-      await prisma.labGateProgress.update({
-        where: { id: row.id },
+      await prisma.labGateProgress.updateMany({
+        where: { id: row.id, status: { not: 'passed' } },
         data: { status: next },
       });
     }
@@ -153,6 +152,26 @@ export async function markGatePassedOnAc(opts: {
 
   // 解锁后续关
   await syncStudentGateProgress(opts.studentId);
+
+  try {
+    const student = await prisma.student.findUnique({
+      where: { id: opts.studentId },
+      select: { curriculumVersion: true },
+    });
+    await recordReviewEvidence({
+      studentId: opts.studentId,
+      curriculumVersion: student?.curriculumVersion || '2026-summer-os',
+      targetType: 'gate',
+      targetId: opts.gateId,
+      evidenceType: 'judge_ac',
+      evidenceId: opts.submitId,
+      passed: true,
+      evidenceAt: new Date(),
+      today: resolveProgressDate(),
+    });
+  } catch (error) {
+    console.warn('gate: review schedule update failed', error);
+  }
 
   // 检查助教主路径：所有非 manual 关是否均 passed
   await maybeCompleteAssistantPath(opts.studentId);

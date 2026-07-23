@@ -263,7 +263,7 @@
       "D. 仅页错误"
     ],
     "answer": "A",
-    "explanation": "受控陷入内核。",
+    "explanation": "系统调用通过受控的陷入或 syscall 指令进入内核，不能由用户态直接跳转到内核地址。",
     "stage": "basic"
   }
 ]

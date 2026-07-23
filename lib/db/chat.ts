@@ -1,4 +1,9 @@
 import prisma from './index';
+import {
+  parseKnowledgeReferences,
+  serializeKnowledgeReferences,
+  type KnowledgeReference,
+} from '@/lib/knowledge/references';
 
 export type ChatRole = 'user' | 'assistant' | 'system';
 
@@ -41,16 +46,26 @@ export async function getOrCreateSession(opts: {
 export async function appendMessage(
   sessionId: string,
   role: ChatRole,
-  content: string
+  content: string,
+  knowledgeRefs: KnowledgeReference[] = []
 ) {
   const msg = await prisma.chatMessage.create({
-    data: { sessionId, role, content },
+    data: {
+      sessionId,
+      role,
+      content,
+      knowledgeRefs: serializeKnowledgeReferences(knowledgeRefs),
+    },
   });
   await prisma.chatSession.update({
     where: { id: sessionId },
     data: { updatedAt: new Date() },
   });
   return msg;
+}
+
+export function parseStoredKnowledgeRefs(value: string | null | undefined): KnowledgeReference[] {
+  return parseKnowledgeReferences(value || '[]');
 }
 
 export async function listMessages(sessionId: string, limit = 100) {

@@ -17,7 +17,7 @@
   {
     "type": "choice",
     "difficulty": 35,
-    "knowledgePoints": ["rust", "ownership"],
+    "knowledgePoints": ["rust", "variables", "ownership"],
     "content": "对实现 Copy 的类型（如 i32）赋值时，通常发生？",
     "options": [
       "A. move，源变量失效",
@@ -107,7 +107,7 @@
   {
     "type": "choice",
     "difficulty": 45,
-    "knowledgePoints": ["rust"],
+    "knowledgePoints": ["rust", "result"],
     "content": "Result<T, E> 的 Ok/Err 分别表示？",
     "options": [
       "A. 成功值 / 错误",
@@ -137,7 +137,7 @@
   {
     "type": "choice",
     "difficulty": 40,
-    "knowledgePoints": ["rust"],
+    "knowledgePoints": ["rust", "match"],
     "content": "match 相对 if let 的优势是？",
     "options": [
       "A. 更慢",
@@ -227,7 +227,7 @@
   {
     "type": "choice",
     "difficulty": 35,
-    "knowledgePoints": ["rust"],
+    "knowledgePoints": ["rust", "match"],
     "content": "枚举可以携带数据，这种代数数据类型适合？",
     "options": [
       "A. 只存标签无数据",

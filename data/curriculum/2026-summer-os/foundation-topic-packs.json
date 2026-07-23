@@ -1,0 +1,123 @@
+{
+  "version": "2026-summer-os",
+  "packs": [
+    {
+      "id": "topic-os-overview-interrupts",
+      "unitId": "os-overview-interrupts",
+      "title": "OS 总览与中断学习地图",
+      "learningObjectives": [
+        "说明操作系统作为资源管理者和硬件抽象层的核心职责。",
+        "区分用户态与内核态，并解释为什么特权操作必须经过受控入口。",
+        "区分中断、异常和系统调用的触发来源与基本控制流。"
+      ],
+      "questionTags": [
+        { "tag": "os_overview", "label": "OS 职责与特权级" },
+        { "tag": "interrupt", "label": "中断来源与处理" },
+        { "tag": "trap", "label": "陷入与系统调用" }
+      ],
+      "misconceptions": [
+        {
+          "id": "os-is-ordinary-library",
+          "label": "操作系统只是供应用调用的普通函数库。",
+          "questionTags": ["os_overview"],
+          "remediationCardIds": ["os-theory-01-overview"]
+        },
+        {
+          "id": "user-mode-can-run-privileged-operations",
+          "label": "用户态程序可以直接执行特权操作或跳转到内核代码。",
+          "questionTags": ["os_overview", "trap"],
+          "remediationCardIds": ["os-theory-01-overview", "trap-syscall"]
+        },
+        {
+          "id": "interrupt-trap-have-identical-sources",
+          "label": "中断、异常和系统调用的触发来源完全相同。",
+          "questionTags": ["interrupt", "trap"],
+          "remediationCardIds": ["trap-syscall"]
+        }
+      ],
+      "nextTask": {
+        "unitId": "process-scheduling",
+        "label": "本单元达标并完成到期复习后，进入进程与调度。"
+      }
+    },
+    {
+      "id": "topic-process-scheduling",
+      "unitId": "process-scheduling",
+      "title": "进程与调度学习地图",
+      "learningObjectives": [
+        "区分程序与进程，并说明进程在新建、就绪、运行、阻塞和终止之间的基本变化。",
+        "说明 PCB 保存哪些进程执行与调度信息，以及上下文切换为什么需要保存 CPU 现场。",
+        "比较 RR、SJF 和优先级等调度策略的目标与代价，解释时间片和抢占之间的关系。"
+      ],
+      "questionTags": [
+        { "tag": "process", "label": "进程概念与状态" },
+        { "tag": "pcb", "label": "PCB 与上下文切换" },
+        { "tag": "scheduling", "label": "调度策略与时间片" }
+      ],
+      "misconceptions": [
+        {
+          "id": "program-is-process",
+          "label": "程序文件和进程是同一个东西，进程只是一份静态代码。",
+          "questionTags": ["process"],
+          "remediationCardIds": ["os-theory-02-process-thread"]
+        },
+        {
+          "id": "pcb-stores-source-code",
+          "label": "PCB 主要保存用户程序源码，切换进程不需要保存 CPU 执行现场。",
+          "questionTags": ["pcb"],
+          "remediationCardIds": ["os-theory-02-process-thread"]
+        },
+        {
+          "id": "smaller-timeslice-always-better",
+          "label": "时间片越小响应一定越好，而且不会增加上下文切换开销。",
+          "questionTags": ["scheduling"],
+          "remediationCardIds": ["scheduling"]
+        }
+      ],
+      "nextTask": {
+        "unitId": "memory-virtual-memory",
+        "label": "本单元达标并完成到期复习后，进入内存与虚存。"
+      }
+    },
+    {
+      "id": "topic-memory-virtual-memory",
+      "unitId": "memory-virtual-memory",
+      "title": "内存与虚存学习地图",
+      "learningObjectives": [
+        "区分虚拟地址与物理地址，并说明页表如何把虚拟页号映射到物理页框号。",
+        "说明页表权限位和 TLB 的基本作用，解释为什么用户态不能直接修改页表或访问内核映射。",
+        "区分可恢复的按需分页缺页与非法地址或权限访问，概述缺页进入内核后的处理路径。"
+      ],
+      "questionTags": [
+        { "tag": "memory", "label": "地址空间与内存保护" },
+        { "tag": "virtual_memory", "label": "页表与虚拟地址翻译" },
+        { "tag": "page_fault", "label": "缺页原因与处理" }
+      ],
+      "misconceptions": [
+        {
+          "id": "virtual-address-is-physical-address",
+          "label": "程序使用的虚拟地址就是内存硬件上的物理地址，不需要页表翻译。",
+          "questionTags": ["memory", "virtual_memory"],
+          "remediationCardIds": ["os-theory-03-memory", "virtual-memory"]
+        },
+        {
+          "id": "user-can-edit-page-table",
+          "label": "用户态程序可以直接修改页表和权限位，因此地址空间隔离主要靠应用自觉。",
+          "questionTags": ["memory", "virtual_memory"],
+          "remediationCardIds": ["os-theory-03-memory", "virtual-memory"]
+        },
+        {
+          "id": "every-page-fault-is-fatal",
+          "label": "发生缺页异常就一定要终止进程，按需分页无法在处理后恢复执行。",
+          "questionTags": ["page_fault"],
+          "remediationCardIds": ["os-theory-03-memory", "virtual-memory"]
+        }
+      ],
+      "nextTask": {
+        "unitId": "rust-basics",
+        "relation": "recommended",
+        "label": "OS 导学主线达标后，如 Rust 基础尚未达标，转入 Rust 基础。"
+      }
+    }
+  ]
+}

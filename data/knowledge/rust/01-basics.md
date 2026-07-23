@@ -1,3 +1,11 @@
+---
+id: rust-01-basics
+title: Rust 基础语法
+tags: [rust, variables]
+stage: pre_study_rust
+question_tags: [rust, variables]
+---
+
 # Rust 基础语法
 
 ## 变量与可变性

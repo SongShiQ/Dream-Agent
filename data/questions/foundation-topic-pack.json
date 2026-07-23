@@ -1,0 +1,102 @@
+[
+  {
+    "type": "choice",
+    "difficulty": 35,
+    "knowledgePoints": ["tooling", "cargo"],
+    "content": "cargo check 的主要用途是？",
+    "options": ["A. 只运行程序", "B. 快速检查编译错误而不生成最终可执行文件", "C. 删除 target", "D. 提交 Git"],
+    "answer": "B",
+    "explanation": "cargo check 进行编译检查，适合快速反馈类型和借用错误。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["tooling", "cargo"],
+    "content": "Cargo.toml 中的 dependencies 用来声明？",
+    "options": ["A. 运行时日志", "B. 项目依赖及其版本约束", "C. Git 分支", "D. QEMU 内存大小"],
+    "answer": "B",
+    "explanation": "Cargo 根据依赖声明解析并构建项目所需的 crate。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["tooling", "compiler_error"],
+    "content": "遇到 Rust 编译错误时，最小有效排查顺序通常是？",
+    "options": ["A. 先重装操作系统", "B. 先读错误位置和主错误，再检查相关类型或借用关系", "C. 删除所有代码", "D. 忽略错误继续运行"],
+    "answer": "B",
+    "explanation": "编译器通常给出主错误位置和约束信息，应先缩小到最小修改点。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["tooling", "git"],
+    "content": "git diff 在实验排错中最适合用来？",
+    "options": ["A. 查看当前工作区相对基线的修改", "B. 编译 Rust", "C. 启动 QEMU", "D. 清空数据库"],
+    "answer": "A",
+    "explanation": "git diff 能帮助确认实际改了哪些行，避免把无关改动带入实验。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["tooling", "compiler_error"],
+    "content": "链接阶段报 undefined reference 时，优先怀疑哪一类问题？",
+    "options": ["A. 声明与实现或链接输入不匹配", "B. 键盘布局", "C. 页表权限位", "D. 用户密码"],
+    "answer": "A",
+    "explanation": "链接器找不到所需符号时，应检查实现、crate 依赖、目标文件和链接脚本。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 40,
+    "knowledgePoints": ["tooling", "cargo"],
+    "content": "cargo test 的价值是？",
+    "options": ["A. 只检查格式", "B. 编译并运行项目测试，验证可重复行为", "C. 自动发布内容", "D. 修改页表"],
+    "answer": "B",
+    "explanation": "自动化测试是确认修复没有破坏已有行为的基本工具。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["tooling", "git"],
+    "content": "提交实验前保留一个小而明确的 Git commit 主要便于？",
+    "options": ["A. 追踪变更和回退到可工作的基线", "B. 绕过编译器", "C. 隐藏测试结果", "D. 自动获得 AC"],
+    "answer": "A",
+    "explanation": "小提交使评审、定位回归和恢复工作状态更可靠。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 45,
+    "knowledgePoints": ["tooling", "compiler_error"],
+    "content": "编译器同时报告多条错误时，通常应先处理？",
+    "options": ["A. 最后一条警告", "B. 最早出现的主错误，因为后续错误可能是连锁结果", "C. 随机一条", "D. 所有提示都忽略"],
+    "answer": "B",
+    "explanation": "前面的类型或语法错误常会导致后续级联报错，先修主错误更高效。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 50,
+    "knowledgePoints": ["tooling", "cargo"],
+    "content": "Cargo.lock 在可复现实验环境中的主要作用是？",
+    "options": ["A. 锁定实际解析到的依赖版本", "B. 保存终端历史", "C. 存储 Git 密钥", "D. 替代源码"],
+    "answer": "A",
+    "explanation": "锁文件使不同机器更容易使用一致的依赖版本构建同一项目。",
+    "stage": "pre_study_tools"
+  },
+  {
+    "type": "choice",
+    "difficulty": 55,
+    "knowledgePoints": ["tooling", "git"],
+    "content": "准备实验补丁时，git status 最先帮助确认什么？",
+    "options": ["A. 当前分支以及已暂存、未暂存和未跟踪文件", "B. CPU 温度", "C. 页表根地址", "D. 测试标准答案"],
+    "answer": "A",
+    "explanation": "提交前确认工作区范围可以避免漏交或误交无关文件。",
+    "stage": "pre_study_tools"
+  }
+]

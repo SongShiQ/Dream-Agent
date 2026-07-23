@@ -13,7 +13,13 @@ import {
   refreshSessionSummary,
   getSessionForStudent,
   deleteSession,
+  parseStoredKnowledgeRefs,
 } from '@/lib/db/chat';
+import {
+  encodeKnowledgeReferencesHeader,
+  toKnowledgeReferences,
+  type KnowledgeReference,
+} from '@/lib/knowledge/references';
 import { getCurrentStudent } from '@/lib/auth/session';
 
 type LearnerContext = {
@@ -138,6 +144,7 @@ export async function GET(req: Request) {
         id: m.id,
         role: m.role,
         content: m.content,
+        knowledgeRefs: parseStoredKnowledgeRefs(m.knowledgeRefs),
         createdAt: m.createdAt,
       })),
     });
@@ -204,6 +211,7 @@ export async function POST(req: Request) {
     let feedbackMode = 'hybrid';
     let sessionSummary = '';
     let sessionId: string | undefined;
+    let knowledgeReferences: KnowledgeReference[] = [];
 
     const { student } = await getCurrentStudent(req, body.studentId);
 
@@ -255,6 +263,7 @@ export async function POST(req: Request) {
       if (q || weakTags.length) {
         const cards = await searchCards({ query: q, tags: weakTags, limit: 3 });
         knowledgeBlock = formatCardsForPrompt(cards, 1000);
+        knowledgeReferences = toKnowledgeReferences(cards);
       }
     } catch (e) {
       console.warn('chat: knowledge search failed', e);
@@ -280,7 +289,7 @@ export async function POST(req: Request) {
       async onFinish({ text }) {
         if (sessionId && text) {
           try {
-            await appendMessage(sessionId, 'assistant', text);
+            await appendMessage(sessionId, 'assistant', text, knowledgeReferences);
             await refreshSessionSummary(sessionId);
           } catch (e) {
             console.warn('chat: persist assistant failed', e);
@@ -303,6 +312,12 @@ export async function POST(req: Request) {
     const response = result.toDataStreamResponse();
     if (sessionId) {
       response.headers.set('X-Chat-Session-Id', sessionId);
+    }
+    if (knowledgeReferences.length > 0) {
+      response.headers.set(
+        'X-Knowledge-Refs',
+        encodeKnowledgeReferencesHeader(knowledgeReferences)
+      );
     }
     return response;
   } catch (error) {

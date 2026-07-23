@@ -8,6 +8,7 @@ export type CurrentStudent = {
   name: string;
   email: string | null;
   currentStage: string;
+  curriculumVersion: string;
   weakPoints: string;
   feedbackMode: string;
 };
@@ -71,6 +72,7 @@ export async function getCurrentStudent(
       name: true,
       email: true,
       currentStage: true,
+      curriculumVersion: true,
       weakPoints: true,
       feedbackMode: true,
     },

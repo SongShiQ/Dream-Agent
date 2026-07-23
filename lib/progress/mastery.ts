@@ -7,6 +7,12 @@ import { buildGatesDashboard } from '@/lib/labs';
 import { getStudentStats } from '@/lib/db/student';
 import { buildFoundationDashboard } from '@/lib/foundation/units';
 import { weakPointsToRecommendedUnit } from '@/lib/assess/diagnostic';
+import {
+  selectActionableFoundationUnit,
+  selectPrimaryLearningTask,
+  resolveRecommendedFoundationUnitId,
+} from '@/lib/progress/mastery-policy';
+import { listDueReviews } from '@/lib/progress/review-scheduler';
 
 export type EvidenceState = 'viewed' | 'personal_done' | 'mastered' | 'missing';
 
@@ -40,16 +46,28 @@ export async function buildStudentDashboard(studentId: string) {
   const weakPoints = parseWeakPoints(student.weakPoints);
   const gatesDashboard = await buildGatesDashboard(studentId);
   const foundationDashboard = await buildFoundationDashboard(studentId);
+  const today = resolveProgressDate();
+  const rawDueReviews = await listDueReviews(studentId, today);
   const masteredGates = gatesDashboard.gates.filter((g) => g.progress.status === 'passed');
-  const recommendedUnitId = weakPointsToRecommendedUnit(weakPoints);
-  const recommendedFoundationUnit =
-    foundationDashboard.units.find((item) => item.unit.id === recommendedUnitId) ||
-    foundationDashboard.units.find((item) => item.status !== 'mastered') ||
-    null;
-  const nextGate =
-    gatesDashboard.gates.find((g) => g.progress.status === 'unlocked') ||
-    gatesDashboard.gates.find((g) => g.progress.status === 'locked') ||
-    null;
+  const recommendedUnitId = resolveRecommendedFoundationUnitId(
+    weakPoints,
+    weakPointsToRecommendedUnit
+  );
+  const recommendedFoundationUnit = selectActionableFoundationUnit(
+    foundationDashboard.units,
+    recommendedUnitId
+  );
+  const foundationTitleById = new Map(
+    foundationDashboard.units.map((item) => [item.unit.id, item.unit.title])
+  );
+  const gateTitleById = new Map(gatesDashboard.gates.map((gate) => [gate.id, gate.title]));
+  const dueReviews = rawDueReviews.map((review) => ({
+    ...review,
+    title:
+      review.targetType === 'foundation_unit'
+        ? foundationTitleById.get(review.targetId) || review.targetId
+        : gateTitleById.get(review.targetId) || review.targetId,
+  }));
 
   const planTasks = (() => {
     try {
@@ -80,6 +98,7 @@ export async function buildStudentDashboard(studentId: string) {
   });
 
   const latestAssessment = student.assessments[0] || null;
+  const latestFoundationDiagnosis = foundationDashboard.latestDiagnosis;
   const assessmentMastered =
     latestAssessment &&
     latestAssessment.theory >= 80 &&
@@ -90,10 +109,16 @@ export async function buildStudentDashboard(studentId: string) {
     {
       id: 'diagnostic',
       label: '导学诊断/小测证据',
-      state: assessmentMastered ? 'mastered' : latestAssessment ? 'viewed' : 'missing',
+      state: assessmentMastered
+        ? 'mastered'
+        : latestAssessment || latestFoundationDiagnosis
+          ? 'viewed'
+          : 'missing',
       evidence: latestAssessment
         ? `最近：理论 ${latestAssessment.theory} / 编码 ${latestAssessment.coding} / Rust ${latestAssessment.rust}`
-        : '尚无服务端测评记录',
+        : latestFoundationDiagnosis
+          ? `最近微单元：${foundationTitleById.get(latestFoundationDiagnosis.unitId) || latestFoundationDiagnosis.unitId}（${latestFoundationDiagnosis.status === 'passed' ? '通过' : '未达标'}）`
+          : '尚无服务端测评记录',
     },
     {
       id: 'daily-personal',
@@ -119,24 +144,14 @@ export async function buildStudentDashboard(studentId: string) {
     },
   ];
 
-  const primaryTask = nextGate
-    ? {
-        id: `gate:${nextGate.id}`,
-        title:
-          nextGate.progress.status === 'locked'
-            ? `等待解锁：${nextGate.title}`
-            : `完成关卡：${nextGate.title}`,
-        mode: 'lab',
-        evidenceRequired: '只有 OJ verdict=AC 才能标记 mastered',
-      }
-    : todaySteps[0]
-      ? {
-          id: todaySteps[0].id,
-          title: todaySteps[0].title,
-          mode: todaySteps[0].mode,
-          evidenceRequired: '完成个人任务只记录 personal_done',
-        }
-      : null;
+  const primaryTask = selectPrimaryLearningTask({
+    foundationUnits: foundationDashboard.units,
+    allRequiredFoundationMastered: foundationDashboard.allRequiredMastered,
+    recommendedUnitId,
+    gates: gatesDashboard.gates,
+    dueReviews,
+    fallbackStep: todaySteps[0] || null,
+  });
 
   return {
     student: {
@@ -153,6 +168,7 @@ export async function buildStudentDashboard(studentId: string) {
       masteredRequired: foundationDashboard.masteredRequired,
       requiredTotal: foundationDashboard.requiredTotal,
       allRequiredMastered: foundationDashboard.allRequiredMastered,
+      latestDiagnosis: foundationDashboard.latestDiagnosis,
       recommendedUnit: recommendedFoundationUnit
         ? {
             id: recommendedFoundationUnit.unit.id,
@@ -165,6 +181,10 @@ export async function buildStudentDashboard(studentId: string) {
     },
     todaySteps,
     primaryTask,
+    reviewQueue: {
+      dueCount: dueReviews.length,
+      items: dueReviews,
+    },
     conditions,
     gates: gatesDashboard.gates.map((g) => ({
       id: g.id,

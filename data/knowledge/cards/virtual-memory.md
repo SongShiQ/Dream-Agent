@@ -4,6 +4,15 @@ tags: [memory, virtual_memory, page_fault]
 stage: basic
 labs: [lab2-address]
 title: 虚拟内存与缺页
+course_version: 2026-summer-os
+publication_status: published
+review_status: pending
+source_refs: [rcore-tutorial-v3-ch4]
+prerequisite_ids: [os-overview-interrupts]
+misconception_ids: [va-is-pa, user-page-table-write]
+question_tags: [virtual_memory, memory, page_fault]
+lab_gate_ids: [lab2-address]
+related_ids: [trap-syscall, process-fork]
 ---
 
 # 虚拟内存与缺页

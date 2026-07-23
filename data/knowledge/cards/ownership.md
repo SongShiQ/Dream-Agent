@@ -4,6 +4,7 @@ tags: [rust, ownership, borrow]
 stage: pre_study_rust
 labs: []
 title: Rust 所有权与借用
+question_tags: [ownership, borrow]
 ---
 
 # Rust 所有权与借用

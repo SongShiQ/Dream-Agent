@@ -1,3 +1,11 @@
+---
+id: rust-03-structs-enums
+title: Rust 结构体与枚举
+tags: [rust, structs, enums, match]
+stage: pre_study_rust
+question_tags: [rust, match]
+---
+
 # Rust 结构体
 
 ## 定义结构体

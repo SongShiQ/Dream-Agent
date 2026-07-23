@@ -30,7 +30,7 @@
       "D. 无时钟中断"
     ],
     "answer": "A",
-    "explanation": "提高响应。",
+    "explanation": "抢占允许内核在需要时暂停正在运行的进程并切换到其他进程，通常有助于改善响应性。",
     "stage": "basic"
   },
   {
@@ -98,7 +98,7 @@
       "D. 仅相对"
     ],
     "answer": "A",
-    "explanation": "/ 开始。",
+    "explanation": "绝对路径从根目录（Unix 下通常写作 /）开始，而不是从当前目录开始。",
     "stage": "pre_study_theory"
   },
   {
@@ -133,7 +133,7 @@
       "D. 链接时"
     ],
     "answer": "A",
-    "explanation": "资源释放。",
+    "explanation": "值离开作用域并被丢弃时，Rust 会调用 Drop 逻辑来执行资源清理。",
     "stage": "pre_study_rust"
   },
   {
@@ -195,7 +195,7 @@
     "knowledgePoints": [
       "memory"
     ],
-    "content": "物理地址是？",
+    "content": "关于物理地址，下列说法正确的是？",
     "options": [
       "A. 总线上的真实内存地址",
       "B. 编译器行号",
@@ -203,7 +203,7 @@
       "D. 端口号"
     ],
     "answer": "A",
-    "explanation": "与虚拟地址相对。",
+    "explanation": "物理地址是地址翻译后用于访问内存硬件的地址，与进程看到的虚拟地址不同。",
     "stage": "pre_study_theory"
   },
   {

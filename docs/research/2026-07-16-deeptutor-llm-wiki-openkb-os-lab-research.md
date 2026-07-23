@@ -1,5 +1,7 @@
 # DeepTutor × LLM Wiki × OpenKB × OS 实验生成框架专项调研
 
+> **已被源码审计版取代（2026-07-17）**：四个准确仓库已下载并完成代码、发布物、许可证与可运行性复核。请以 [2026-07-17-four-repos-source-audit.md](./2026-07-17-four-repos-source-audit.md) 为准；本文保留为前期架构思路记录。
+
 > **2026-07-16 效果优先补充**：不论工程难度，最终学习效果排序与目标态见 [2026-07-16-effect-priority-conclusion.md](./2026-07-16-effect-priority-conclusion.md)。核心判断：Wiki + DeepTutor 式教学闭环 + 真实验 OJ 三层合体效果最好。
 
 

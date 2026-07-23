@@ -4,6 +4,38 @@
     "docsHint": "结合 rCore-Tutorial 与训练营讲义阅读",
     "repo": "https://github.com/rcore-os/rCore-Tutorial-v3"
   },
+  "sources": {
+    "ostep": {
+      "title": "Operating Systems: Three Easy Pieces",
+      "url": "https://pages.cs.wisc.edu/~remzi/OSTEP/",
+      "kind": "textbook",
+      "version": "online"
+    },
+    "rust-book": {
+      "title": "The Rust Programming Language",
+      "url": "https://doc.rust-lang.org/book/",
+      "kind": "language-book",
+      "version": "online"
+    },
+    "rcore-tutorial-v3": {
+      "title": "rCore-Tutorial-v3",
+      "url": "https://github.com/rcore-os/rCore-Tutorial-v3",
+      "kind": "course-repository",
+      "version": "v3"
+    },
+    "rcore-tutorial-v3-ch4": {
+      "title": "rCore-Tutorial-v3：地址空间与页表",
+      "url": "https://github.com/rcore-os/rCore-Tutorial-v3",
+      "kind": "course-repository",
+      "version": "v3"
+    }
+  },
+  "pathSourceDefaults": {
+    "os-theory/": ["ostep"],
+    "rust/": ["rust-book"],
+    "cards/ownership.md": ["rust-book"],
+    "cards/": ["rcore-tutorial-v3"]
+  },
   "tagMap": {
     "process": ["os-theory/02-process-thread.md"],
     "thread": ["os-theory/02-process-thread.md"],
@@ -24,6 +56,7 @@
     "interrupt": ["os-theory/01-overview.md", "cards/trap-syscall.md"],
     "trap": ["cards/trap-syscall.md"],
     "syscall": ["cards/trap-syscall.md"],
+    "os_overview": ["os-theory/01-overview.md"],
     "rust": [
       "rust/01-basics.md",
       "rust/02-ownership.md",
@@ -33,6 +66,13 @@
     ],
     "ownership": ["rust/02-ownership.md", "cards/ownership.md"],
     "borrow": ["rust/02-ownership.md", "cards/ownership.md"],
+    "variables": ["rust/01-basics.md"],
+    "match": ["rust/03-structs-enums.md"],
+    "result": ["rust/04-error-handling.md"],
+    "tooling": ["rust/09-modules.md"],
+    "cargo": ["rust/09-modules.md"],
+    "compiler_error": ["rust/09-modules.md"],
+    "git": ["rust/09-modules.md"],
     "lifetime": ["rust/02-ownership.md", "rust/05-generics-traits.md"],
     "overview": ["os-theory/01-overview.md"],
     "structs": ["rust/03-structs-enums.md"],

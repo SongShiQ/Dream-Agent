@@ -2,7 +2,7 @@
   {
     "type": "choice",
     "difficulty": 30,
-    "knowledgePoints": ["overview", "process"],
+    "knowledgePoints": ["os_overview", "overview", "process"],
     "content": "操作系统作为资源管理器，其最核心的职责是？",
     "options": [
       "A. 只负责编译用户程序",
@@ -287,7 +287,7 @@
   {
     "type": "choice",
     "difficulty": 55,
-    "knowledgePoints": ["process", "memory"],
+    "knowledgePoints": ["os_overview", "process", "memory"],
     "content": "用户态与内核态分离的安全意义主要是？",
     "options": [
       "A. 让用户程序可任意改页表",

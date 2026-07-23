@@ -36,6 +36,36 @@ type RecentSubmission = {
   createdAt: string;
 };
 
+type FormativeTemplate = {
+  id: string;
+  title: string;
+  description: string;
+  courseVersion: string;
+  gateIds: string[];
+  conceptTags: string[];
+  sourceRefs: string[];
+  assessment: { mode: 'formative'; masteryImpact: 'none' };
+};
+
+type FormativeAttempt = {
+  id: string;
+  templateId: string;
+  templateVersion: number;
+  instanceId: string;
+  variantIndex: number;
+  status: 'in_progress' | 'submitted';
+  prompt: string;
+  input: unknown;
+  answer: string;
+  isCorrect: boolean | null;
+  feedback: string;
+  startedAt: string;
+  submittedAt: string | null;
+  formative: true;
+  masteryImpact: 'none';
+  gatePassed: false;
+};
+
 export function LabPanel({ studentId }: { studentId: string }) {
   const { user } = useApp();
   const [gates, setGates] = useState<GateRow[]>([]);
@@ -52,6 +82,23 @@ export function LabPanel({ studentId }: { studentId: string }) {
   const [score, setScore] = useState<number | null>(null);
   const [dashLoading, setDashLoading] = useState(true);
   const [recentSubmissions, setRecentSubmissions] = useState<RecentSubmission[]>([]);
+  const [formativeTemplates, setFormativeTemplates] = useState<FormativeTemplate[]>([]);
+  const [formativeAttempts, setFormativeAttempts] = useState<FormativeAttempt[]>([]);
+  const [formativeAvailability, setFormativeAvailability] = useState({
+    total: 0,
+    available: 0,
+    awaitingReview: 0,
+  });
+  const [formativeAttempt, setFormativeAttempt] = useState<FormativeAttempt | null>(null);
+  const [formativeAnswer, setFormativeAnswer] = useState('');
+  const [formativeResult, setFormativeResult] = useState<{
+    correct: boolean;
+    expectedAnswer: string;
+    feedback: string;
+  } | null>(null);
+  const [formativeDashboardLoading, setFormativeDashboardLoading] = useState(true);
+  const [formativeLoading, setFormativeLoading] = useState(false);
+  const [formativeError, setFormativeError] = useState<string | null>(null);
 
   const loadDashboard = useCallback(async () => {
     if (!studentId) return;
@@ -83,6 +130,35 @@ export function LabPanel({ studentId }: { studentId: string }) {
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
+
+  const loadFormative = useCallback(async () => {
+    if (!studentId) return;
+    setFormativeDashboardLoading(true);
+    try {
+      const res = await fetch(`/api/experiments?studentId=${encodeURIComponent(studentId)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setFormativeError(data.error || '加载预实验失败');
+        return;
+      }
+      setFormativeTemplates(data.templates || []);
+      setFormativeAttempts(data.attempts || []);
+      setFormativeAvailability(data.availability || { total: 0, available: 0, awaitingReview: 0 });
+      const activeAttempt = (data.attempts || []).find(
+        (attempt: FormativeAttempt) => attempt.status === 'in_progress'
+      );
+      setFormativeAttempt(activeAttempt || null);
+      if (!activeAttempt) setFormativeAnswer('');
+    } catch {
+      setFormativeError('网络错误');
+    } finally {
+      setFormativeDashboardLoading(false);
+    }
+  }, [studentId]);
+
+  useEffect(() => {
+    void loadFormative();
+  }, [loadFormative]);
 
   const loadGateDetail = useCallback(async () => {
     if (!studentId || !activeId) return;
@@ -116,6 +192,61 @@ export function LabPanel({ studentId }: { studentId: string }) {
   const isIde = active?.editorMode === 'ide_first';
   const isLocked = active?.progress.status === 'locked';
   const isPassed = active?.progress.status === 'passed';
+
+  const startFormative = async (templateId: string) => {
+    setFormativeLoading(true);
+    setFormativeError(null);
+    setFormativeResult(null);
+    try {
+      const res = await fetch('/api/experiments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId, action: 'start', templateId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFormativeError(data.error || '启动预实验失败');
+        return;
+      }
+      setFormativeAttempt(data.attempt);
+      setFormativeAttempts((prev) => [data.attempt, ...prev.filter((item) => item.id !== data.attempt.id)]);
+      setFormativeAnswer(data.attempt.answer || '');
+    } catch {
+      setFormativeError('网络错误');
+    } finally {
+      setFormativeLoading(false);
+    }
+  };
+
+  const submitFormative = async () => {
+    if (!formativeAttempt) return;
+    setFormativeLoading(true);
+    setFormativeError(null);
+    try {
+      const res = await fetch('/api/experiments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId,
+          action: 'submit',
+          attemptId: formativeAttempt.id,
+          answer: formativeAnswer,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFormativeError(data.error || '提交预实验失败');
+        return;
+      }
+      setFormativeAttempt(data.attempt);
+      setFormativeAttempts((prev) => [data.attempt, ...prev.filter((item) => item.id !== data.attempt.id)]);
+      setFormativeResult(data.result);
+    } catch {
+      setFormativeError('网络错误');
+    } finally {
+      setFormativeLoading(false);
+    }
+  };
 
   const submit = async () => {
     if (!studentId || !active) return;
@@ -197,6 +328,129 @@ export function LabPanel({ studentId }: { studentId: string }) {
           </p>
         )}
       </div>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex flex-wrap items-center gap-2">
+            参数化预实验
+            <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-800">
+              formative · 不直接过关
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <p className="text-xs text-muted-foreground">
+            这些题目由课程模板生成，用于检查概念和获得反馈；不会写入 mastery，也不会替代 OJ 的 AC 关卡证据。
+          </p>
+          {formativeError && (
+            <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded px-2 py-1">
+              {formativeError}
+            </p>
+          )}
+          {formativeDashboardLoading ? (
+            <p className="text-xs text-muted-foreground">加载预实验目录…</p>
+          ) : formativeAttempt ? (
+            <div className="space-y-2 rounded-lg border p-3 bg-muted/20">
+              <p className="text-xs font-medium">当前题目</p>
+              <pre className="text-xs whitespace-pre-wrap font-sans">{formativeAttempt.prompt}</pre>
+              {formativeAttempt.status === 'in_progress' ? (
+                <div className="space-y-2">
+                  <label className="text-xs font-medium" htmlFor="formative-answer">
+                    你的答案
+                  </label>
+                  <input
+                    id="formative-answer"
+                    className="w-full border rounded px-2 py-1 text-sm bg-background"
+                    value={formativeAnswer}
+                    onChange={(event) => setFormativeAnswer(event.target.value)}
+                    maxLength={80}
+                    autoComplete="off"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => void submitFormative()}
+                    disabled={formativeLoading || !formativeAnswer.trim()}
+                  >
+                    {formativeLoading ? '判定中…' : '提交形成性答案'}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-xs text-muted-foreground">本题已提交，可生成下一道变式。</p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void startFormative(formativeAttempt.templateId)}
+                    disabled={formativeLoading}
+                  >
+                    再做一题
+                  </Button>
+                </div>
+              )}
+              {formativeResult && (
+                <div className={`rounded border px-2 py-2 text-xs ${formativeResult.correct ? 'border-green-200 bg-green-50 text-green-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
+                  <p className="font-medium">{formativeResult.correct ? '回答正确' : '回答不正确'}</p>
+                  <p className="mt-1">参考判定：{formativeResult.expectedAnswer}</p>
+                  <p className="mt-1">{formativeResult.feedback}</p>
+                  <p className="mt-1 font-medium">此结果不会直接获得 mastery 或 Gate 过关。</p>
+                </div>
+              )}
+            </div>
+          ) : formativeTemplates.length > 0 ? (
+            <div className="space-y-2">
+              {formativeTemplates.map((template) => (
+                <div key={template.id} className="rounded-lg border p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{template.title}</p>
+                    <p className="text-xs text-muted-foreground">{template.description}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      关联 Gate：{template.gateIds.join('、')} · {template.sourceRefs.join('、')}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => void startFormative(template.id)}
+                    disabled={formativeLoading}
+                  >
+                    开始预实验
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : formativeAvailability.awaitingReview > 0 ? (
+            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded px-2 py-2">
+              当前有 {formativeAvailability.awaitingReview} 个预实验正在教师审核中，审核通过并发布后会出现在这里。
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">当前课程暂无已发布的参数化预实验。</p>
+          )}
+          {formativeAttempts.filter((attempt) => attempt.status === 'submitted').length > 0 && (
+            <div className="space-y-1 border-t pt-2">
+              <p className="text-[11px] font-medium">最近形成性记录</p>
+              {formativeAttempts
+                .filter(
+                  (attempt) =>
+                    attempt.status === 'submitted' && attempt.id !== formativeAttempt?.id
+                )
+                .slice(0, 3)
+                .map((attempt) => (
+                  <div key={attempt.id} className="flex flex-wrap justify-between gap-2 text-[11px] text-muted-foreground">
+                    <span>
+                      {attempt.isCorrect ? '正确' : '未答对'} · {attempt.feedback}
+                    </span>
+                    <span>{new Date(attempt.submittedAt || attempt.startedAt).toLocaleString()}</span>
+                  </div>
+                ))}
+              <p className="text-[11px] text-muted-foreground">
+                共提交 {formativeAttempts.filter((attempt) => attempt.status === 'submitted').length} 次；历史结果仅供复盘，不改变关卡状态。
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid md:grid-cols-[14rem_1fr] gap-4 min-h-0">
         <Card className="h-fit">

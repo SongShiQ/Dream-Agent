@@ -4,6 +4,7 @@ tags: [trap, syscall, interrupt]
 stage: basic
 labs: [lab1-batch]
 title: 陷入与系统调用
+question_tags: [interrupt, trap]
 ---
 
 # 陷入与系统调用

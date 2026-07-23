@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { authError, getCurrentStudent } from '@/lib/auth/session';
 import { getDailyProgress, setTaskPersonalDone } from '@/lib/progress/daily';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);

@@ -4,6 +4,8 @@
 **性质**：不论工程难度，只比较最终学习效果；并给出 OpenCamp / Dream Agent 应追求的效果上限。  
 **关联调研**：[2026-07-16-deeptutor-llm-wiki-openkb-os-lab-research.md](./2026-07-16-deeptutor-llm-wiki-openkb-os-lab-research.md)
 
+**源码复核**：[2026-07-17-four-repos-source-audit.md](./2026-07-17-four-repos-source-audit.md)
+
 ## 1. 一句话结论
 
 **最终效果最好的，不是单押 DeepTutor，也不是单押 LLM Wiki，而是：**

@@ -22,6 +22,7 @@
     "difficulty": 35,
     "knowledgePoints": [
       "rust",
+      "variables",
       "ownership"
     ],
     "content": "值默认 move 后，原变量？",
@@ -42,7 +43,7 @@
       "rust",
       "borrow"
     ],
-    "content": "同一时刻允许？",
+    "content": "依据 Rust 借用规则，同一作用域内对同一值的引用组合哪项允许？",
     "options": [
       "A. 多个 &T 或一个 &mut T",
       "B. 多个 &mut T",
@@ -50,7 +51,7 @@
       "D. 无限 &mut T"
     ],
     "answer": "A",
-    "explanation": "借用规则。",
+    "explanation": "Rust 允许多个不可变引用，或只允许一个可变引用，不能同时混用两类引用。",
     "stage": "pre_study_rust"
   },
   {
@@ -68,7 +69,7 @@
       "D. 链接动态库"
     ],
     "answer": "A",
-    "explanation": "防悬垂引用。",
+    "explanation": "生命周期标注帮助编译器验证引用不会超过被引用值的有效期，从而避免悬垂引用。",
     "stage": "basic"
   },
   {
@@ -102,7 +103,7 @@
       "D. 文件名"
     ],
     "answer": "A",
-    "explanation": "Ok/Err。",
+    "explanation": "Result 用 Ok 表示成功值，用 Err 表示可处理的失败信息。",
     "stage": "pre_study_rust"
   },
   {
@@ -119,7 +120,7 @@
       "D. 禁止编译"
     ],
     "answer": "B",
-    "explanation": "缩小检查边界。",
+    "explanation": "unsafe 不会关闭整个类型系统，而是让程序员承担部分安全不变量并使用额外能力。",
     "stage": "basic"
   },
   {
@@ -149,7 +150,7 @@
     ],
     "content": "Rust 中可变引用的符号是______。",
     "answer": "&mut",
-    "explanation": "可变借用。",
+    "explanation": "&mut 表示对值的可变借用，同一时刻需要遵守唯一可变访问规则。",
     "stage": "pre_study_rust"
   },
   {

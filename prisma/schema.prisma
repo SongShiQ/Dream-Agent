@@ -33,6 +33,8 @@ model Student {
   labGateProgress LabGateProgress[]
   dailyTaskProgress DailyTaskProgress[]
   foundationQuizAttempts FoundationQuizAttempt[]
+  reviewSchedules ReviewSchedule[]
+  experimentAttempts ExperimentAttempt[]
 
   // 助教主路径完成（全部 unit/integration 关 AC 后）
   assistantPathCompletedAt DateTime?
@@ -120,6 +122,55 @@ model FoundationQuizAttempt {
   @@index([studentId, unitId])
   @@index([studentId, attemptDate])
   @@index([unitId, status])
+}
+
+// 确定性复习调度：只由小测/Judge 等证据更新，不由 LLM 自报掌握度写入
+model ReviewSchedule {
+  id                   String   @id @default(cuid())
+  studentId            String
+  student              Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  curriculumVersion    String   @default("2026-summer-os")
+  targetType           String   // foundation_unit | gate
+  targetId             String
+  state                String   @default("scheduled") // due | scheduled | completed | snoozed
+  repetition           Int      @default(0)
+  intervalDays         Int      @default(0)
+  dueDate              String   // YYYY-MM-DD（学员本地日历）
+  lastEvidenceType     String   @default("")
+  lastEvidenceId       String   @default("")
+  lastEvidencePassed   Boolean  @default(false)
+  lastEvidenceAt       DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([studentId, curriculumVersion, targetType, targetId])
+  @@index([studentId, dueDate, state])
+  @@index([targetType, targetId])
+}
+
+// 参数化预实验：仅形成性练习，不写入 mastery、LabGateProgress 或 CodeSubmission
+model ExperimentAttempt {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseVersion   String
+  templateId      String
+  templateVersion Int
+  instanceId      String
+  variantIndex    Int
+  status          String   @default("in_progress") // in_progress | submitted
+  promptSnapshot  String
+  inputSnapshot   String   // JSON；不包含 expected / hidden cases
+  answer           String   @default("")
+  isCorrect        Boolean?
+  feedback         String   @default("")
+  activeKey        String?  @unique // 仅进行中 attempt 持有，提交后清空
+  startedAt        DateTime @default(now())
+  submittedAt      DateTime?
+
+  @@index([studentId, courseVersion, templateId, startedAt])
+  @@index([studentId, status, startedAt])
+  @@index([templateId, status])
 }
 
 // 学习计划
@@ -241,6 +292,31 @@ model RiskResolution {
   @@index([updatedAt])
 }
 
+// 教师内容审核决策：网页记录决策，CLI/CI 校验哈希后再写入 Git 内容文件
+model ContentReviewDecision {
+  id             String   @id @default(cuid())
+  targetKind     String   // knowledge_card | experiment_template
+  targetId       String
+  sourcePath     String
+  courseVersion  String
+  action         String   // approve_review | request_changes | publish | deprecate
+  status         String   @default("pending") // pending | applied | stale | cancelled
+  activeKey      String?  @unique
+  actor          String
+  note           String   @default("")
+  expectedHash   String
+  proposedHash   String
+  beforeState    String
+  afterState     String
+  failureReason  String   @default("")
+  createdAt      DateTime @default(now())
+  appliedAt      DateTime?
+
+  @@index([targetKind, targetId, createdAt])
+  @@index([status, createdAt])
+  @@index([actor, createdAt])
+}
+
 // 实验关卡进度（OJ：passed 仅由 AC 提交写入）
 model LabGateProgress {
   id           String    @id @default(cuid())
@@ -283,6 +359,7 @@ model ChatMessage {
   session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   role      String   // user | assistant | system
   content   String
+  knowledgeRefs String  @default("[]") // JSON: 检索依据摘要，不复制知识正文
   createdAt DateTime @default(now())
 
   @@index([sessionId, createdAt])

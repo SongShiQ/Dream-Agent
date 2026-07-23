@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "vm-address-translation-v1",
+  "courseVersion": "2026-summer-os",
+  "title": "虚拟地址到物理地址翻译",
+  "description": "根据页大小、虚拟地址和页表项权限，计算物理地址或判断精确的缺页异常类型。",
+  "publicationStatus": "draft",
+  "reviewStatus": "pending",
+  "sourceRefs": ["rcore-tutorial-v3-ch4"],
+  "gateIds": ["lab2-address"],
+  "conceptTags": ["virtual_memory", "page_table", "page_fault", "permission"],
+  "generator": {
+    "kind": "address_translation_v1",
+    "version": 1,
+    "variantCount": 64,
+    "pageSizes": [4096, 8192],
+    "virtualPageMin": 1,
+    "virtualPageMax": 511,
+    "physicalFrameMin": 16,
+    "physicalFrameMax": 4095
+  },
+  "assessment": {
+    "mode": "formative",
+    "masteryImpact": "none",
+    "answerFormat": "physical_address_or_fault",
+    "hiddenCaseCount": 8,
+    "requiredScenarios": ["mapped", "not_present", "privilege_fault", "write_fault"]
+  },
+  "resources": {
+    "timeLimitMs": 1000,
+    "memoryMb": 64,
+    "network": "none"
+  }
+}

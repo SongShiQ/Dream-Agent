@@ -1,3 +1,11 @@
+---
+id: os-theory-01-overview
+title: 操作系统概述
+tags: [os_overview, overview, syscall]
+stage: pre_study_theory
+question_tags: [os_overview]
+---
+
 # 操作系统概述
 
 ## 什么是操作系统

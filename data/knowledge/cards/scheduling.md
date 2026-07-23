@@ -4,6 +4,7 @@ tags: [scheduling, process]
 stage: basic
 labs: [lab3-process]
 title: 进程调度基础
+question_tags: [process, scheduling]
 ---
 
 # 进程调度基础

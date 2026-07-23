@@ -305,7 +305,7 @@
     ],
     "content": "将虚拟页号翻译为物理页框号的核心数据结构是______。",
     "answer": "页表",
-    "explanation": "可多级页表。",
+    "explanation": "页表记录虚拟页号到物理页框号的映射，也可以组织成多级页表以节省空间。",
     "stage": "pre_study_theory"
   },
   {

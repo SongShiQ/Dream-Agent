@@ -8,9 +8,20 @@ export {
   getStageMeta,
   getAllStageMeta,
   getOpencampMeta,
+  getKnowledgeSourceRegistry,
+  listKnowledgeCards,
   formatCardsForPrompt,
   type KnowledgeCard,
 } from './cards';
+
+export {
+  decodeKnowledgeReferencesHeader,
+  encodeKnowledgeReferencesHeader,
+  parseKnowledgeReferences,
+  serializeKnowledgeReferences,
+  toKnowledgeReferences,
+  type KnowledgeReference,
+} from './references';
 
 /** 兼容旧调用名 */
 export async function searchKnowledge(
